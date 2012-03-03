@@ -36,7 +36,7 @@ public class WorldEditor implements Runnable {
 
         @Override
         public Location getLocation() {
-            return this.loc;
+            return loc;
         }
     }
 
@@ -47,58 +47,58 @@ public class WorldEditor implements Runnable {
         }
 
         PerformResult perform() throws WorldEditorException {
-            if (dontRollback.contains(this.replaced)) return PerformResult.BLACKLISTED;
-            final Block block = this.loc.getBlock();
-            if (this.replaced == 0 && block.getTypeId() == 0) return PerformResult.NO_ACTION;
+            if (dontRollback.contains(replaced)) return PerformResult.BLACKLISTED;
+            final Block block = loc.getBlock();
+            if (replaced == 0 && block.getTypeId() == 0) return PerformResult.NO_ACTION;
             final BlockState state = block.getState();
-            if (!WorldEditor.this.world.isChunkLoaded(block.getChunk()))
-                WorldEditor.this.world.loadChunk(block.getChunk());
-            if (this.type == this.replaced) {
-                if (this.type == 0) {
+            if (!world.isChunkLoaded(block.getChunk()))
+                world.loadChunk(block.getChunk());
+            if (type == replaced) {
+                if (type == 0) {
                     if (!block.setTypeId(0))
                         throw new WorldEditorException(block.getTypeId(), 0, block.getLocation());
-                } else if (this.ca != null
-                        && (this.type == 23 || this.type == 54 || this.type == 61 || this.type == 62)) {
+                } else if (ca != null
+                        && (type == 23 || type == 54 || type == 61 || type == 62)) {
                     int leftover = 0;
                     try {
-                        leftover = modifyContainer(state, new ItemStack(this.ca.itemType,
-                                -this.ca.itemAmount, (short) 0, this.ca.itemData));
+                        leftover = modifyContainer(state, new ItemStack(ca.itemType,
+                                -ca.itemAmount, (short) 0, ca.itemData));
                         if (leftover > 0)
                             for (final BlockFace face : new BlockFace[] { BlockFace.NORTH, BlockFace.SOUTH,
                                     BlockFace.EAST, BlockFace.WEST })
                                 if (block.getRelative(face).getTypeId() == 54)
                                     leftover = modifyContainer(block.getRelative(face).getState(),
-                                            new ItemStack(this.ca.itemType,
-                                                    this.ca.itemAmount < 0 ? leftover : -leftover,
-                                                    (short) 0, this.ca.itemData));
+                                            new ItemStack(ca.itemType,
+                                                    ca.itemAmount < 0 ? leftover : -leftover,
+                                                    (short) 0, ca.itemData));
                     } catch (final Exception ex) {
                         throw new WorldEditorException(ex.getMessage(), block.getLocation());
                     }
                     if (!state.update())
                         throw new WorldEditorException("Failed to update inventory of "
                                 + materialName(block.getTypeId()), block.getLocation());
-                    if (leftover > 0 && this.ca.itemAmount < 0)
+                    if (leftover > 0 && ca.itemAmount < 0)
                         throw new WorldEditorException("Not enough space left in "
                                 + materialName(block.getTypeId()), block.getLocation());
                 } else return PerformResult.NO_ACTION;
                 return PerformResult.SUCCESS;
             }
-            if (!(equalTypes(block.getTypeId(), this.type) || replaceAnyway.contains(block.getTypeId())))
+            if (!(equalTypes(block.getTypeId(), type) || replaceAnyway.contains(block.getTypeId())))
                 return PerformResult.NO_ACTION;
             if (state instanceof ContainerBlock) {
                 ((ContainerBlock) state).getInventory().clear();
                 state.update();
             }
-            if (block.getTypeId() == this.replaced) {
-                if (block.getData() != (this.type == 0 ? this.data : (byte) 0))
-                    block.setData(this.type == 0 ? this.data : (byte) 0, true);
+            if (block.getTypeId() == replaced) {
+                if (block.getData() != (type == 0 ? data : (byte) 0))
+                    block.setData(type == 0 ? data : (byte) 0, true);
                 else return PerformResult.NO_ACTION;
-            } else if (!block.setTypeIdAndData(this.replaced, this.type == 0 ? this.data : (byte) 0, true))
-                throw new WorldEditorException(block.getTypeId(), this.replaced, block.getLocation());
+            } else if (!block.setTypeIdAndData(replaced, type == 0 ? data : (byte) 0, true))
+                throw new WorldEditorException(block.getTypeId(), replaced, block.getLocation());
             final int curtype = block.getTypeId();
-            if (this.signtext != null && (curtype == 63 || curtype == 68)) {
+            if (signtext != null && (curtype == 63 || curtype == 68)) {
                 final Sign sign = (Sign) block.getState();
-                final String[] lines = this.signtext.split("\0", 4);
+                final String[] lines = signtext.split("\0", 4);
                 if (lines.length < 4) return PerformResult.NO_ACTION;
                 for (int i = 0; i < 4; i++)
                     sign.setLine(i, lines[i]);
@@ -161,28 +161,28 @@ public class WorldEditor implements Runnable {
     }
 
     public int getBlacklistCollisions() {
-        return this.blacklistCollisions;
+        return blacklistCollisions;
     }
 
     public long getElapsedTime() {
-        return this.elapsedTime;
+        return elapsedTime;
     }
 
     public int getErrors() {
-        return this.errors.length;
+        return errors.length;
     }
 
     public int getSize() {
-        return this.edits.size();
+        return edits.size();
     }
 
     public int getSuccesses() {
-        return this.successes;
+        return successes;
     }
 
     public void queueEdit(int x, int y, int z, int replaced, int type, byte data, String signtext,
             short itemType, short itemAmount, byte itemData) {
-        this.edits.add(new Edit(0, new Location(this.world, x, y, z), null, replaced, type, data, signtext,
+        edits.add(new Edit(0, new Location(world, x, y, z), null, replaced, type, data, signtext,
                 new ChestAccess(itemType, itemAmount, itemData)));
     }
 
@@ -191,14 +191,14 @@ public class WorldEditor implements Runnable {
     public synchronized void run() {
         final List<WorldEditorException> errorList = new ArrayList<WorldEditorException>();
         int counter = 0;
-        while (!this.edits.isEmpty() && counter < 100) {
+        while (!edits.isEmpty() && counter < 100) {
             try {
-                switch (this.edits.poll().perform()) {
+                switch (edits.poll().perform()) {
                 case SUCCESS:
-                    this.successes++;
+                    successes++;
                     break;
                 case BLACKLISTED:
-                    this.blacklistCollisions++;
+                    blacklistCollisions++;
                     break;
                 }
             } catch (final WorldEditorException ex) {
@@ -208,8 +208,8 @@ public class WorldEditor implements Runnable {
             }
             counter++;
         }
-        if (this.edits.isEmpty()) {
-            this.logblock.getServer().getScheduler().cancelTask(this.taskID);
+        if (edits.isEmpty()) {
+            logblock.getServer().getScheduler().cancelTask(taskID);
             if (errorList.size() > 0)
                 try {
                     final File file = new File("plugins/LogBlock/error/WorldEditor-"
@@ -222,21 +222,21 @@ public class WorldEditor implements Runnable {
                     writer.close();
                 } catch (final Exception ex) {
                 }
-            this.errors = errorList.toArray(new WorldEditorException[errorList.size()]);
+            errors = errorList.toArray(new WorldEditorException[errorList.size()]);
             notify();
         }
     }
 
     synchronized public void start() throws Exception {
         final long start = System.currentTimeMillis();
-        this.taskID = this.logblock.getServer().getScheduler()
-                .scheduleSyncRepeatingTask(this.logblock, this, 0, 1);
-        if (this.taskID == -1) throw new Exception("Failed to schedule task");
+        taskID = logblock.getServer().getScheduler()
+                .scheduleSyncRepeatingTask(logblock, this, 0, 1);
+        if (taskID == -1) throw new Exception("Failed to schedule task");
         try {
-            this.wait();
+            wait();
         } catch (final InterruptedException ex) {
             throw new Exception("Interrupted");
         }
-        this.elapsedTime = System.currentTimeMillis() - start;
+        elapsedTime = System.currentTimeMillis() - start;
     }
 }
