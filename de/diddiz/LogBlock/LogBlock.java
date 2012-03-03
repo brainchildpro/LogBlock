@@ -141,7 +141,8 @@ public class LogBlock extends JavaPlugin {
                                 "Unable to save queue to database. Trying to write to a local file.");
                         try {
                             this.consumer.writeToFile();
-                            getLogger().info("Successfully dumped queue.");
+                            getLogger().info("Successfully dumped queue. Disabling..");
+                            break;
                         } catch (final FileNotFoundException ex) {
                             getLogger().info("Failed to write. Given up.");
                             break;
