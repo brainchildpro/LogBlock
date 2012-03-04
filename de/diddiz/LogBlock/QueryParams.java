@@ -427,11 +427,12 @@ public class QueryParams implements Cloneable {
                 if (values.length != 1)
                     throw new IllegalArgumentException("Wrong count of arguments for '" + param + "'");
                 final World w;
-                if(values[0].equals("\"world\"")) w = Bukkit.getServer().getWorld("world");
-                else
-                w = Bukkit.getServer().getWorld(values[0].replace("\"", "").replace("*", ""));
+                if (values[0].equals("\"world\""))
+                    w = Bukkit.getServer().getWorld("world");
+                else w = Bukkit.getServer().getWorld(values[0].replace("\"", "").replace("*", ""));
                 if (w == null)
-                    throw new IllegalArgumentException("There is no world called '" + values[0].replace("\"", "").replace("*", "") + "'");
+                    throw new IllegalArgumentException("There is no world called '"
+                            + values[0].replace("\"", "").replace("*", "") + "'");
                 this.world = w;
             } else if (param.equals("asc"))
                 this.order = Order.ASC;

@@ -41,7 +41,6 @@ public class Config {
     public static boolean askRollbacks, askRedos, askClearLogs, askClearLogAfterRollback,
             askRollbackAfterBan;
     public static String banPermission;
-    public static boolean checkVersion;
     public static Set<Integer> hiddenBlocks;
 
     public static Set<String> hiddenPlayers;
@@ -80,8 +79,6 @@ public class Config {
             worldNames.add(world.getName());
         if (worldNames.isEmpty()) {
             worldNames.add("world");
-            worldNames.add("world_nether");
-            worldNames.add("world_the_end");
         }
         def.put("loggedWorlds", worldNames);
         def.put("mysql.host", "localhost");
@@ -97,9 +94,7 @@ public class Config {
         def.put("clearlog.dumpDeletedLog", false);
         def.put("clearlog.enableAutoClearLog", false);
         def.put("clearlog.auto", Arrays.asList("world \"world\" before 365 days all",
-                "world \"world\" player lavaflow waterflow leavesdecay before 7 days all",
-                "world world_nether before 365 days all",
-                "world world_nether player lavaflow before 7 days all"));
+                "world \"world\" player lavaflow waterflow leavesdecay before 7 days all"));
         def.put("clearlog.autoClearLogDelay", "6h");
         def.put("logging.logCreeperExplosionsAsPlayerWhoTriggeredThese", false);
         def.put("logging.logKillsLevel", "PLAYERS");
@@ -120,7 +115,6 @@ public class Config {
         def.put("questioner.askClearLogAfterRollback", true);
         def.put("questioner.askRollbackAfterBan", false);
         def.put("questioner.banPermission", "mcbans.ban.local");
-        def.put("updater.checkVersion", true);
         def.put("tools.tool.aliases", Arrays.asList("t"));
         def.put("tools.tool.leftClickBehavior", "NONE");
         def.put("tools.tool.rightClickBehavior", "TOOL");
@@ -188,7 +182,6 @@ public class Config {
         askClearLogAfterRollback = config.getBoolean("questioner.askClearLogAfterRollback", true);
         askRollbackAfterBan = config.getBoolean("questioner.askRollbackAfterBan", false);
         banPermission = config.getString("questioner.banPermission");
-        checkVersion = config.getBoolean("updater.checkVersion", true);
         final List<Tool> tools = new ArrayList<Tool>();
         final ConfigurationSection toolsSec = config.getConfigurationSection("tools");
         for (final String toolName : toolsSec.getKeys(false))

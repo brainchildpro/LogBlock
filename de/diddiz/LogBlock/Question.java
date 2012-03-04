@@ -22,6 +22,19 @@ public class Question {
             this.answers.put(ans.toLowerCase().hashCode(), ans);
     }
 
+    public boolean isPlayerQuestioned(int playerNameHash) {
+        return playerNameHash == this.respondentHash;
+    }
+
+    public boolean isRightAnswer(int answerHash) {
+        return this.answers.containsKey(answerHash);
+    }
+
+    public synchronized void returnAnswer(int answerHash) {
+        this.answer = this.answers.get(answerHash);
+        notify();
+    }
+
     synchronized String ask() {
         final StringBuilder options = new StringBuilder();
         for (final String ans : this.answers.values())
@@ -44,18 +57,5 @@ public class Question {
             return true;
         }
         return false;
-    }
-
-    public boolean isPlayerQuestioned(int playerNameHash) {
-        return playerNameHash == this.respondentHash;
-    }
-
-    public boolean isRightAnswer(int answerHash) {
-        return this.answers.containsKey(answerHash);
-    }
-
-    public synchronized void returnAnswer(int answerHash) {
-        this.answer = this.answers.get(answerHash);
-        notify();
     }
 }

@@ -51,26 +51,23 @@ public class WorldEditor implements Runnable {
             final Block block = loc.getBlock();
             if (replaced == 0 && block.getTypeId() == 0) return PerformResult.NO_ACTION;
             final BlockState state = block.getState();
-            if (!world.isChunkLoaded(block.getChunk()))
-                world.loadChunk(block.getChunk());
+            if (!world.isChunkLoaded(block.getChunk())) world.loadChunk(block.getChunk());
             if (type == replaced) {
                 if (type == 0) {
                     if (!block.setTypeId(0))
                         throw new WorldEditorException(block.getTypeId(), 0, block.getLocation());
-                } else if (ca != null
-                        && (type == 23 || type == 54 || type == 61 || type == 62)) {
+                } else if (ca != null && (type == 23 || type == 54 || type == 61 || type == 62)) {
                     int leftover = 0;
                     try {
-                        leftover = modifyContainer(state, new ItemStack(ca.itemType,
-                                -ca.itemAmount, (short) 0, ca.itemData));
+                        leftover = modifyContainer(state, new ItemStack(ca.itemType, -ca.itemAmount,
+                                (short) 0, ca.itemData));
                         if (leftover > 0)
                             for (final BlockFace face : new BlockFace[] { BlockFace.NORTH, BlockFace.SOUTH,
                                     BlockFace.EAST, BlockFace.WEST })
                                 if (block.getRelative(face).getTypeId() == 54)
                                     leftover = modifyContainer(block.getRelative(face).getState(),
-                                            new ItemStack(ca.itemType,
-                                                    ca.itemAmount < 0 ? leftover : -leftover,
-                                                    (short) 0, ca.itemData));
+                                            new ItemStack(ca.itemType, ca.itemAmount < 0 ? leftover
+                                                    : -leftover, (short) 0, ca.itemData));
                     } catch (final Exception ex) {
                         throw new WorldEditorException(ex.getMessage(), block.getLocation());
                     }
@@ -229,8 +226,7 @@ public class WorldEditor implements Runnable {
 
     synchronized public void start() throws Exception {
         final long start = System.currentTimeMillis();
-        taskID = logblock.getServer().getScheduler()
-                .scheduleSyncRepeatingTask(logblock, this, 0, 1);
+        taskID = logblock.getServer().getScheduler().scheduleSyncRepeatingTask(logblock, this, 0, 1);
         if (taskID == -1) throw new Exception("Failed to schedule task");
         try {
             wait();

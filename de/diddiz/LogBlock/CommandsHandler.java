@@ -46,9 +46,9 @@ public class CommandsHandler implements CommandExecutor {
         @Override
         public final void close() {
             try {
-                if (this.conn != null) this.conn.close();
-                if (this.state != null) this.state.close();
-                if (this.rs != null) this.rs.close();
+                if (conn != null) conn.close();
+                if (state != null) this.state.close();
+                if (rs != null) this.rs.close();
             } catch (final SQLException ex) {
                 getLogger().log(Level.SEVERE, "[LogBlock CommandsHandler] SQL exception on close", ex);
             }
@@ -63,9 +63,9 @@ public class CommandsHandler implements CommandExecutor {
         @Override
         public void run() {
             try {
-                this.conn = CommandsHandler.this.logblock.getConnection();
-                this.state = this.conn.createStatement();
-                if (this.conn == null) {
+                conn = CommandsHandler.this.logblock.getConnection();
+                this.state = conn.createStatement();
+                if (conn == null) {
                     this.sender.sendMessage(ChatColor.RED + "MySQL connection lost");
                     return;
                 }
@@ -85,8 +85,8 @@ public class CommandsHandler implements CommandExecutor {
                         this.sender.sendMessage(ChatColor.DARK_AQUA + "Searching " + this.params.getTitle()
                                 + ":");
                         this.sender.sendMessage(ChatColor.GREEN.toString() + deleted + " blocks found.");
-                        if (!logblock.ask((Player) this.sender,
-                                "Are you sure you want to continue?", "yes", "no").equals("yes")) {
+                        if (!logblock.ask((Player) this.sender, "Are you sure you want to continue?", "yes",
+                                "no").equals("yes")) {
                             this.sender.sendMessage(ChatColor.RED + "ClearLog aborted");
                             return;
                         }
@@ -170,6 +170,24 @@ public class CommandsHandler implements CommandExecutor {
         }
     }
 
+    public class CommandKillConnection extends AbstractCommand {
+        public CommandKillConnection(CommandSender s, QueryParams params, boolean async) throws Exception {
+            super(s, params, async);
+        }
+
+        @Override
+        public void run() {
+            final Connection conn = CommandsHandler.this.logblock.getConnection();
+            if (conn == null) {
+                this.sender.sendMessage(ChatColor.RED + "Connection is null!");
+                return;
+            }
+            // conn.close();
+            close();
+            this.sender.sendMessage(ChatColor.GREEN + "Connection killed successfully.");
+        }
+    }
+
     public class CommandLookup extends AbstractCommand {
         public CommandLookup(CommandSender sender, QueryParams params, boolean async) throws Exception {
             super(sender, params, async);
@@ -194,12 +212,12 @@ public class CommandsHandler implements CommandExecutor {
                             || this.params.types.contains(61) || this.params.types.contains(62))
                         this.params.needChestAccess = true;
                 }
-                this.conn = CommandsHandler.this.logblock.getConnection();
-                if (this.conn == null) {
+                conn = CommandsHandler.this.logblock.getConnection();
+                if (conn == null) {
                     this.sender.sendMessage(ChatColor.RED + "MySQL connection lost");
                     return;
                 }
-                this.state = this.conn.createStatement();
+                this.state = conn.createStatement();
                 this.rs = this.state.executeQuery(this.params.getQuery());
                 this.sender.sendMessage(ChatColor.DARK_AQUA + this.params.getTitle() + ":");
                 if (this.rs.next()) {
@@ -249,12 +267,12 @@ public class CommandsHandler implements CommandExecutor {
                 this.params.needChestAccess = true;
                 this.params.order = Order.ASC;
                 this.params.sum = SummarizationMode.NONE;
-                this.conn = CommandsHandler.this.logblock.getConnection();
-                if (this.conn == null) {
+                conn = CommandsHandler.this.logblock.getConnection();
+                if (conn == null) {
                     this.sender.sendMessage(ChatColor.RED + "MySQL connection lost");
                     return;
                 }
-                this.state = this.conn.createStatement();
+                this.state = conn.createStatement();
                 if (!checkRestrictions(this.sender, this.params)) return;
                 this.rs = this.state.executeQuery(this.params.getQuery());
                 if (!this.params.silent)
@@ -276,8 +294,8 @@ public class CommandsHandler implements CommandExecutor {
                 if (!this.params.silent
                         && askRedos
                         && this.sender instanceof Player
-                        && !logblock.ask((Player) this.sender,
-                                "Are you sure you want to continue?", "yes", "no").equals("yes")) {
+                        && !logblock.ask((Player) this.sender, "Are you sure you want to continue?", "yes",
+                                "no").equals("yes")) {
                     this.sender.sendMessage(ChatColor.RED + "Redo aborted");
                     return;
                 }
@@ -318,12 +336,12 @@ public class CommandsHandler implements CommandExecutor {
                 this.params.needChestAccess = true;
                 this.params.order = Order.DESC;
                 this.params.sum = SummarizationMode.NONE;
-                this.conn = CommandsHandler.this.logblock.getConnection();
-                if (this.conn == null) {
+                conn = CommandsHandler.this.logblock.getConnection();
+                if (conn == null) {
                     this.sender.sendMessage(ChatColor.RED + "MySQL connection lost");
                     return;
                 }
-                this.state = this.conn.createStatement();
+                this.state = conn.createStatement();
                 if (!checkRestrictions(this.sender, this.params)) return;
                 if (CommandsHandler.this.logblock.getConsumer().getQueueSize() > 0)
                     new CommandSaveQueue(this.sender, null, false);
@@ -367,10 +385,11 @@ public class CommandsHandler implements CommandExecutor {
                         + (editor.getBlacklistCollisions() > 0 ? ", " + editor.getBlacklistCollisions()
                                 + " blacklist collisions" : "") + ")");
                 if (!this.params.silent && askClearLogAfterRollback
-                        && CommandsHandler.this.logblock.hasPermission(this.sender, "logblock.clearlog") && this.sender instanceof Player) {
+                        && CommandsHandler.this.logblock.hasPermission(this.sender, "logblock.clearlog")
+                        && this.sender instanceof Player) {
                     Thread.sleep(1000);
-                    if (logblock.ask((Player) this.sender,
-                            "Do you want to delete the rollbacked log?", "yes", "no").equals("yes")) {
+                    if (logblock.ask((Player) this.sender, "Do you want to delete the rollbacked log?",
+                            "yes", "no").equals("yes")) {
                         this.params.silent = true;
                         new CommandClearLog(this.sender, this.params, false);
                     } else this.sender.sendMessage(ChatColor.LIGHT_PURPLE + "Clearlog cancelled");
@@ -410,24 +429,6 @@ public class CommandsHandler implements CommandExecutor {
         }
     }
 
-    public class CommandKillConnection extends AbstractCommand {
-        public CommandKillConnection(CommandSender s, QueryParams params, boolean async) throws Exception {
-            super(s, params, async);
-        }
-
-        @Override
-        public void run() {
-            final Connection conn = CommandsHandler.this.logblock.getConnection();
-            if (conn == null) {
-                this.sender.sendMessage(ChatColor.RED + "Connection is null!");
-                return;
-            }
-            // conn.close();
-            close();
-            this.sender.sendMessage(ChatColor.GREEN + "Connection killed successfully.");
-        }
-    }
-
     public class CommandTeleport extends AbstractCommand {
         public CommandTeleport(CommandSender sender, QueryParams params, boolean async) throws Exception {
             super(sender, params, async);
@@ -439,12 +440,12 @@ public class CommandsHandler implements CommandExecutor {
                 this.params.needCoords = true;
                 this.params.limit = 1;
                 this.params.sum = SummarizationMode.NONE;
-                this.conn = CommandsHandler.this.logblock.getConnection();
-                if (this.conn == null) {
+                conn = CommandsHandler.this.logblock.getConnection();
+                if (conn == null) {
                     this.sender.sendMessage(ChatColor.RED + "MySQL connection lost");
                     return;
                 }
-                this.state = this.conn.createStatement();
+                this.state = conn.createStatement();
                 this.rs = this.state.executeQuery(this.params.getQuery());
                 if (this.rs.next()) {
                     final Player player = (Player) this.sender;
@@ -490,12 +491,12 @@ public class CommandsHandler implements CommandExecutor {
                             || this.params.types.contains(54) || this.params.types.contains(61)
                             || this.params.types.contains(62)) this.params.needChestAccess = true;
                 }
-                this.conn = CommandsHandler.this.logblock.getConnection();
-                if (this.conn == null) {
+                conn = CommandsHandler.this.logblock.getConnection();
+                if (conn == null) {
                     this.sender.sendMessage(ChatColor.RED + "MySQL connection lost");
                     return;
                 }
-                this.state = this.conn.createStatement();
+                this.state = conn.createStatement();
                 file = new File("plugins/LogBlock/log/" + this.params.getTitle().replace(":", ".") + ".log");
                 this.sender.sendMessage(ChatColor.GREEN + "Creating " + file.getName());
                 this.rs = this.state.executeQuery(this.params.getQuery());
@@ -528,13 +529,6 @@ public class CommandsHandler implements CommandExecutor {
         }
     }
 
-    private static List<String> argsToList(String[] arr, int offset) {
-        final List<String> list = new ArrayList<String>(Arrays.asList(arr));
-        for (int i = 0; i < offset; i++)
-            list.remove(0);
-        return list;
-    }
-
     static void showPage(CommandSender sender, int page) {
         final Session session = getSession(sender);
         if (session.lookupCache != null && session.lookupCache.length > 0) {
@@ -555,6 +549,13 @@ public class CommandsHandler implements CommandExecutor {
         } else sender.sendMessage(ChatColor.RED + "No blocks in lookup cache");
     }
 
+    private static List<String> argsToList(String[] arr, int offset) {
+        final List<String> list = new ArrayList<String>(Arrays.asList(arr));
+        for (int i = 0; i < offset; i++)
+            list.remove(0);
+        return list;
+    }
+
     final LogBlock logblock;
 
     final BukkitScheduler scheduler;
@@ -570,8 +571,6 @@ public class CommandsHandler implements CommandExecutor {
             if (args.length == 0) {
                 sender.sendMessage(ChatColor.LIGHT_PURPLE + "LogBlock v"
                         + this.logblock.getDescription().getVersion() + " by DiddiZ");
-                if (checkVersion)
-                    sender.sendMessage(ChatColor.LIGHT_PURPLE + this.logblock.getUpdater().checkVersion());
                 sender.sendMessage(ChatColor.LIGHT_PURPLE + "Type /lb help for help");
             } else {
                 final String cmd = args[0].toLowerCase();

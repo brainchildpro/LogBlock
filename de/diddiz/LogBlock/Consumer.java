@@ -25,26 +25,25 @@ public class Consumer extends TimerTask {
 
         @Override
         public String[] getInserts() {
-            final String table = getWorldConfig(this.loc.getWorld()).table;
-            final String[] inserts = new String[this.ca != null || this.signtext != null ? 2 : 1];
+            final String table = getWorldConfig(loc.getWorld()).table;
+            final String[] inserts = new String[ca != null || signtext != null ? 2 : 1];
             inserts[0] = "INSERT INTO `" + table
-                    + "` (date, playerid, replaced, type, data, x, y, z) VALUES (FROM_UNIXTIME(" + this.date
-                    + "), " + playerID(this.playerName) + ", " + this.replaced + ", " + this.type + ", "
-                    + this.data + ", '" + this.loc.getBlockX() + "', " + this.loc.getBlockY() + ", '"
-                    + this.loc.getBlockZ() + "');";
-            if (this.signtext != null)
+                    + "` (date, playerid, replaced, type, data, x, y, z) VALUES (FROM_UNIXTIME(" + date
+                    + "), " + playerID(playerName) + ", " + replaced + ", " + type + ", " + data + ", '"
+                    + loc.getBlockX() + "', " + loc.getBlockY() + ", '" + loc.getBlockZ() + "');";
+            if (signtext != null)
                 inserts[1] = "INSERT INTO `" + table + "-sign` (id, signtext) values (LAST_INSERT_ID(), '"
-                        + this.signtext + "');";
-            else if (this.ca != null)
+                        + signtext + "');";
+            else if (ca != null)
                 inserts[1] = "INSERT INTO `" + table
                         + "-chest` (id, itemtype, itemamount, itemdata) values (LAST_INSERT_ID(), "
-                        + this.ca.itemType + ", " + this.ca.itemAmount + ", " + this.ca.itemData + ");";
+                        + ca.itemType + ", " + ca.itemAmount + ", " + ca.itemData + ");";
             return inserts;
         }
 
         @Override
         public String[] getPlayers() {
-            return new String[] { this.playerName };
+            return new String[] { playerName };
         }
     }
 
@@ -56,12 +55,12 @@ public class Consumer extends TimerTask {
         @Override
         public String[] getInserts() {
             return new String[] { "INSERT INTO `lb-chat` (date, playerid, message) VALUES (FROM_UNIXTIME("
-                    + this.date + "), " + playerID(this.playerName) + ", '" + this.message + "');" };
+                    + date + "), " + playerID(playerName) + ", '" + message + "');" };
         }
 
         @Override
         public String[] getPlayers() {
-            return new String[] { this.playerName };
+            return new String[] { playerName };
         }
     }
 
@@ -72,25 +71,24 @@ public class Consumer extends TimerTask {
         final Location loc;
 
         KillRow(Location loc, String attacker, String defender, int weapon) {
-            this.date = System.currentTimeMillis() / 1000;
+            date = System.currentTimeMillis() / 1000;
             this.loc = loc;
-            this.killer = attacker;
-            this.victim = defender;
+            killer = attacker;
+            victim = defender;
             this.weapon = weapon;
         }
 
         @Override
         public String[] getInserts() {
-            return new String[] { "INSERT INTO `" + getWorldConfig(this.loc.getWorld()).table
-                    + "-kills` (date, killer, victim, weapon, x, y, z) VALUES (FROM_UNIXTIME(" + this.date
-                    + "), " + playerID(this.killer) + ", " + playerID(this.victim) + ", " + this.weapon
-                    + ", " + this.loc.getBlockX() + ", " + this.loc.getBlockY() + ", "
-                    + this.loc.getBlockZ() + ");" };
+            return new String[] { "INSERT INTO `" + getWorldConfig(loc.getWorld()).table
+                    + "-kills` (date, killer, victim, weapon, x, y, z) VALUES (FROM_UNIXTIME(" + date
+                    + "), " + playerID(killer) + ", " + playerID(victim) + ", " + weapon + ", "
+                    + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + ");" };
         }
 
         @Override
         public String[] getPlayers() {
-            return new String[] { this.killer, this.victim };
+            return new String[] { killer, victim };
         }
     }
 
@@ -100,28 +98,27 @@ public class Consumer extends TimerTask {
         private final String ip;
 
         PlayerJoinRow(Player player) {
-            this.playerName = player.getName();
-            this.lastLogin = System.currentTimeMillis() / 1000;
-            this.ip = player.getAddress().toString().replace("'", "\\'");
+            playerName = player.getName();
+            lastLogin = System.currentTimeMillis() / 1000;
+            ip = player.getAddress().toString().replace("'", "\\'");
         }
 
         @Override
         public String[] getInserts() {
             return new String[] { "UPDATE `lb-players` SET lastlogin = FROM_UNIXTIME("
-                    + this.lastLogin
+                    + lastLogin
                     + "), firstlogin = IF(firstlogin = 0, FROM_UNIXTIME("
-                    + this.lastLogin
+                    + lastLogin
                     + "), firstlogin), ip = '"
-                    + this.ip
+                    + ip
                     + "' WHERE "
-                    + (Consumer.this.playerIds.containsKey(this.playerName) ? "playerid = "
-                            + Consumer.this.playerIds.get(this.playerName) : "playerName = '"
-                            + this.playerName + "'") + ";" };
+                    + (playerIds.containsKey(playerName) ? "playerid = " + playerIds.get(playerName)
+                            : "playerName = '" + playerName + "'") + ";" };
         }
 
         @Override
         public String[] getPlayers() {
-            return new String[] { this.playerName };
+            return new String[] { playerName };
         }
     }
 
@@ -130,23 +127,22 @@ public class Consumer extends TimerTask {
         private final long leaveTime;
 
         PlayerLeaveRow(Player player) {
-            this.playerName = player.getName();
-            this.leaveTime = System.currentTimeMillis() / 1000;
+            playerName = player.getName();
+            leaveTime = System.currentTimeMillis() / 1000;
         }
 
         @Override
         public String[] getInserts() {
             return new String[] { "UPDATE `lb-players` SET onlinetime = onlinetime + TIMESTAMPDIFF(SECOND, lastlogin, FROM_UNIXTIME('"
-                    + this.leaveTime
+                    + leaveTime
                     + "')) WHERE lastlogin > 0 && "
-                    + (Consumer.this.playerIds.containsKey(this.playerName) ? "playerid = "
-                            + Consumer.this.playerIds.get(this.playerName) : "playerName = '"
-                            + this.playerName + "'") + ";" };
+                    + (playerIds.containsKey(playerName) ? "playerid = " + playerIds.get(playerName)
+                            : "playerName = '" + playerName + "'") + ";" };
         }
 
         @Override
         public String[] getPlayers() {
-            return new String[] { this.playerName };
+            return new String[] { playerName };
         }
     }
 
@@ -273,7 +269,7 @@ public class Consumer extends TimerTask {
     }
 
     public void queueChat(String player, String message) {
-        this.queue.add(new ChatRow(player, message.replace("\\", "\\\\").replace("'", "\\'")));
+        queue.add(new ChatRow(player, message.replace("\\", "\\\\").replace("'", "\\'")));
     }
 
     /**
@@ -325,7 +321,7 @@ public class Consumer extends TimerTask {
     }
 
     public void queueJoin(Player player) {
-        this.queue.add(new PlayerJoinRow(player));
+        queue.add(new PlayerJoinRow(player));
     }
 
     /**
@@ -354,8 +350,8 @@ public class Consumer extends TimerTask {
      */
     public void queueKill(Location location, String killerName, String victimName, int weapon) {
         if (victimName == null || !isLogged(location.getWorld())) return;
-        this.queue.add(new KillRow(location, killerName == null ? null : killerName.replaceAll(
-                "[^a-zA-Z0-9_]", ""), victimName.replaceAll("[^a-zA-Z0-9_]", ""), weapon));
+        queue.add(new KillRow(location, killerName == null ? null : killerName.replaceAll("[^a-zA-Z0-9_]",
+                ""), victimName.replaceAll("[^a-zA-Z0-9_]", ""), weapon));
     }
 
     /**
@@ -375,7 +371,7 @@ public class Consumer extends TimerTask {
     }
 
     public void queueLeave(Player player) {
-        this.queue.add(new PlayerLeaveRow(player));
+        queue.add(new PlayerLeaveRow(player));
     }
 
     /**
@@ -414,18 +410,16 @@ public class Consumer extends TimerTask {
 
     @Override
     public void run() {
-        if (this.queue.isEmpty() || !this.lock.tryLock()) return;
-        final Connection conn = this.logblock.getConnection();
+        if (queue.isEmpty() || !lock.tryLock()) return;
+        final Connection conn = logblock.getConnection();
         Statement state = null;
         if (getQueueSize() > 1000)
             getLogger().info("[LogBlock Consumer] Queue overloaded. Size: " + getQueueSize());
-        if(getQueueSize() > killConnectionAfter) {
-            if(conn != null) try {
-                conn.close();
-                getLogger().severe("[LogBlock Consumer] Connection killed. Queue size: " + getQueueSize());
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        if (getQueueSize() > killConnectionAfter) if (conn != null) try {
+            conn.close();
+            getLogger().severe("[LogBlock Consumer] Connection killed. Queue size: " + getQueueSize());
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         try {
             if (conn == null) return;
@@ -433,14 +427,14 @@ public class Consumer extends TimerTask {
             state = conn.createStatement();
             final long start = System.currentTimeMillis();
             int count = 0;
-            process: while (!this.queue.isEmpty()
+            process: while (!queue.isEmpty()
                     && (System.currentTimeMillis() - start < timePerRun || count < forceToProcessAtLeast)) {
-                final Row r = this.queue.poll();
+                final Row r = queue.poll();
                 if (r == null) continue;
                 for (final String player : r.getPlayers())
-                    if (!this.playerIds.containsKey(player)) if (!addPlayer(state, player)) {
-                        if (!this.failedPlayers.contains(player)) {
-                            this.failedPlayers.add(player);
+                    if (!playerIds.containsKey(player)) if (!addPlayer(state, player)) {
+                        if (!failedPlayers.contains(player)) {
+                            failedPlayers.add(player);
                             getLogger().warning("[LogBlock Consumer] Failed to add player " + player);
                         }
                         continue process;
@@ -465,7 +459,7 @@ public class Consumer extends TimerTask {
             } catch (final SQLException ex) {
                 getLogger().log(Level.SEVERE, "[LogBlock Consumer] SQL exception on close", ex);
             }
-            this.lock.unlock();
+            lock.unlock();
         }
     }
 
@@ -475,11 +469,11 @@ public class Consumer extends TimerTask {
         int counter = 0;
         new File("plugins/LogBlock/import/").mkdirs();
         PrintWriter writer = new PrintWriter(new File("plugins/LogBlock/import/queue-" + time + "-0.sql"));
-        while (!this.queue.isEmpty()) {
-            final Row r = this.queue.poll();
+        while (!queue.isEmpty()) {
+            final Row r = queue.poll();
             if (r == null) continue;
             for (final String player : r.getPlayers())
-                if (!this.playerIds.containsKey(player) && !insertedPlayers.contains(player)) {
+                if (!playerIds.containsKey(player) && !insertedPlayers.contains(player)) {
                     writer.println("INSERT IGNORE INTO `lb-players` (playername) VALUES ('" + player + "');");
                     insertedPlayers.add(player);
                 }
@@ -495,20 +489,24 @@ public class Consumer extends TimerTask {
         writer.close();
     }
 
-    private boolean addPlayer(Statement state, String playerName) throws SQLException {
-        state.execute("INSERT IGNORE INTO `lb-players` (playername) VALUES ('" + playerName + "')");
-        final ResultSet rs = state.executeQuery("SELECT playerid FROM `lb-players` WHERE playername = '"
-                + playerName + "'");
-        if (rs.next()) this.playerIds.put(playerName, rs.getInt(1));
-        rs.close();
-        return this.playerIds.containsKey(playerName);
+    int getQueueSize() {
+        return queue.size();
     }
 
     String playerID(String playerName) {
         if (playerName == null) return "NULL";
-        final Integer id = this.playerIds.get(playerName);
+        final Integer id = playerIds.get(playerName);
         if (id != null) return id.toString();
         return "(SELECT playerid FROM `lb-players` WHERE playername = '" + playerName + "')";
+    }
+
+    private boolean addPlayer(Statement state, String playerName) throws SQLException {
+        state.execute("INSERT IGNORE INTO `lb-players` (playername) VALUES ('" + playerName + "')");
+        final ResultSet rs = state.executeQuery("SELECT playerid FROM `lb-players` WHERE playername = '"
+                + playerName + "'");
+        if (rs.next()) playerIds.put(playerName, rs.getInt(1));
+        rs.close();
+        return playerIds.containsKey(playerName);
     }
 
     private void queueBlock(String playerName, Location loc, int typeBefore, int typeAfter, byte data,
@@ -517,11 +515,7 @@ public class Consumer extends TimerTask {
                 || typeAfter > 255 || hiddenPlayers.contains(playerName) || !isLogged(loc.getWorld())
                 || typeBefore != typeAfter && hiddenBlocks.contains(typeBefore)
                 && hiddenBlocks.contains(typeAfter)) return;
-        this.queue.add(new BlockRow(loc, playerName.replaceAll("[^a-zA-Z0-9_]", ""), typeBefore, typeAfter,
-                data, signtext != null ? signtext.replace("\\", "\\\\").replace("'", "\\'") : null, ca));
-    }
-
-    int getQueueSize() {
-        return this.queue.size();
+        queue.add(new BlockRow(loc, playerName.replaceAll("[^a-zA-Z0-9_]", ""), typeBefore, typeAfter, data,
+                signtext != null ? signtext.replace("\\", "\\\\").replace("'", "\\'") : null, ca));
     }
 }

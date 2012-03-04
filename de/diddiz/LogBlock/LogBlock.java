@@ -37,10 +37,16 @@ public class LogBlock extends JavaPlugin {
     private Updater updater = null;
     private Timer timer = null;
     private PermissionHandler permissions = null;
-    
+
     private final Vector<Question> questions = new Vector<Question>();
 
     private boolean errorAtLoading = false, noDb = false, connected = true;
+
+    public String ask(Player respondent, String questionMessage, String... answers) {
+        final Question question = new Question(respondent, questionMessage, answers);
+        questions.add(question);
+        return question.ask();
+    }
 
     /**
      * @param params
@@ -66,28 +72,28 @@ public class LogBlock extends JavaPlugin {
     }
 
     public CommandsHandler getCommandsHandler() {
-        return this.commandsHandler;
+        return commandsHandler;
     }
 
     public Connection getConnection() {
         try {
-            final Connection conn = this.pool.getConnection();
-            if (!this.connected) {
+            final Connection conn = pool.getConnection();
+            if (!connected) {
                 getLogger().info("[LogBlock] MySQL connection rebuild");
-                this.connected = true;
+                connected = true;
             }
             return conn;
         } catch (final Exception ex) {
-            if (this.connected) {
+            if (connected) {
                 getLogger().log(Level.SEVERE, "[LogBlock] Error while fetching connection: ", ex);
-                this.connected = false;
+                connected = false;
             } else getLogger().severe("[LogBlock] MySQL connection lost");
             return null;
         }
     }
 
     public Consumer getConsumer() {
-        return this.consumer;
+        return consumer;
     }
 
     public int getCount(QueryParams params) throws SQLException {
@@ -108,14 +114,14 @@ public class LogBlock extends JavaPlugin {
     }
 
     public boolean hasPermission(CommandSender sender, String permission) {
-        if (this.permissions != null && sender instanceof Player)
-            return this.permissions.has((Player) sender, permission);
+        if (permissions != null && sender instanceof Player)
+            return permissions.has((Player) sender, permission);
         return sender.hasPermission(permission);
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
-        if (this.noDb)
+        if (noDb)
             sender.sendMessage(ChatColor.RED
                     + "No database connected. Check your MySQL user/pw and database for typos. Start/restart your MySQL server.");
         return true;
@@ -123,24 +129,24 @@ public class LogBlock extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (this.timer != null) this.timer.cancel();
+        if (timer != null) timer.cancel();
         getServer().getScheduler().cancelTasks(this);
-        if (this.consumer != null) {
+        if (consumer != null) {
             if (logPlayerInfo && getServer().getOnlinePlayers() != null)
                 for (final Player player : getServer().getOnlinePlayers())
-                    this.consumer.queueLeave(player);
-            if (this.consumer.getQueueSize() > 0) {
+                    consumer.queueLeave(player);
+            if (consumer.getQueueSize() > 0) {
                 getLogger().info("[LogBlock] Waiting for consumer ...");
                 int tries = 10;
-                while (this.consumer.getQueueSize() > 0) {
-                    getLogger().info("[LogBlock] Remaining queue size: " + this.consumer.getQueueSize());
+                while (consumer.getQueueSize() > 0) {
+                    getLogger().info("[LogBlock] Remaining queue size: " + consumer.getQueueSize());
                     if (tries > 0)
                         getLogger().info("[LogBlock] Remaining tries: " + tries);
                     else {
                         getLogger().info(
                                 "Unable to save queue to database. Trying to write to a local file.");
                         try {
-                            this.consumer.writeToFile();
+                            consumer.writeToFile();
                             getLogger().info("Successfully dumped queue. Disabling..");
                             break;
                         } catch (final FileNotFoundException ex) {
@@ -148,23 +154,23 @@ public class LogBlock extends JavaPlugin {
                             break;
                         }
                     }
-                    this.consumer.run();
+                    consumer.run();
                     tries--;
                 }
             }
         }
-        if (this.pool != null) this.pool.close();
+        if (pool != null) pool.close();
         getLogger().info("LogBlock disabled.");
     }
 
     @Override
     public void onEnable() {
         final PluginManager pm = getPluginManager();
-        if (this.errorAtLoading) {
+        if (errorAtLoading) {
             pm.disablePlugin(this);
             return;
         }
-        if (this.noDb) return;
+        if (noDb) return;
         if (pm.getPlugin("WorldEdit") == null && !new File("lib/WorldEdit.jar").exists()
                 && !new File("WorldEdit.jar").exists())
             try {
@@ -178,10 +184,10 @@ public class LogBlock extends JavaPlugin {
                         .warning(
                                 "[LogBlock] Failed to download WorldEdit. You may have to download it manually. You don't have to install it, just place the jar in the lib folder.");
             }
-        this.commandsHandler = new CommandsHandler(this);
-        getCommand("lb").setExecutor(this.commandsHandler);
+        commandsHandler = new CommandsHandler(this);
+        getCommand("lb").setExecutor(commandsHandler);
         if (pm.getPlugin("Permissions") != null) {
-            this.permissions = ((Permissions) pm.getPlugin("Permissions")).getHandler();
+            permissions = ((Permissions) pm.getPlugin("Permissions")).getHandler();
             getLogger().info("[LogBlock] Permissions plugin found.");
         } else getLogger().info("[LogBlock] Permissions plugin not found. Using Bukkit Permissions.");
         if (enableAutoClearLog && autoClearLogDelay > 0)
@@ -190,20 +196,19 @@ public class LogBlock extends JavaPlugin {
         getServer().getScheduler().scheduleAsyncDelayedTask(this, new DumpedLogImporter(this));
         registerEvents();
         if (useBukkitScheduler) {
-            if (getServer().getScheduler().scheduleAsyncRepeatingTask(this, this.consumer,
-                    delayBetweenRuns * 20, delayBetweenRuns * 20) > 0)
+            if (getServer().getScheduler().scheduleAsyncRepeatingTask(this, consumer, delayBetweenRuns * 20,
+                    delayBetweenRuns * 20) > 0)
                 getLogger().info("[LogBlock] Scheduled consumer with bukkit scheduler.");
             else {
                 getLogger()
                         .warning(
                                 "[LogBlock] Failed to schedule consumer with bukkit scheduler. Now trying schedule with timer.");
-                this.timer = new Timer();
-                this.timer.scheduleAtFixedRate(this.consumer, delayBetweenRuns * 1000,
-                        delayBetweenRuns * 1000);
+                timer = new Timer();
+                timer.scheduleAtFixedRate(consumer, delayBetweenRuns * 1000, delayBetweenRuns * 1000);
             }
         } else {
-            this.timer = new Timer();
-            this.timer.scheduleAtFixedRate(this.consumer, delayBetweenRuns * 1000, delayBetweenRuns * 1000);
+            timer = new Timer();
+            timer.scheduleAtFixedRate(consumer, delayBetweenRuns * 1000, delayBetweenRuns * 1000);
             getLogger().info("[LogBlock] Scheduled consumer with timer.");
         }
         for (final Tool tool : toolsByType.values())
@@ -212,49 +217,44 @@ public class LogBlock extends JavaPlugin {
                 pm.addPermission(perm);
             }
         // perm.addParent("logblock.*", true);
-        getServer().getPluginManager().registerEvents(new LogBlockQuestionerPlayerListener(questions),
-                this);
-        getServer().getScheduler().scheduleSyncRepeatingTask(this, new QuestionsReaper(this.questions),
-                15000, 15000);
-        // LB questioner
+        getServer().getPluginManager().registerEvents(new LogBlockQuestionerPlayerListener(questions), this);
+        getServer().getScheduler().scheduleSyncRepeatingTask(this, new QuestionsReaper(questions), 15000,
+                15000);
         getLogger().info("LogBlock v" + getDescription().getVersion() + " by DiddiZ enabled.");
-    }
-    
-    public String ask(Player respondent, String questionMessage, String... answers) {
-        final Question question = new Question(respondent, questionMessage, answers);
-        this.questions.add(question);
-        return question.ask();
     }
 
     @Override
     public void onLoad() {
         logblock = this;
         try {
-            this.updater = new Updater(this);
+            updater = new Updater(this);
             Config.load(this);
-            if (checkVersion) getLogger().info("[LogBlock] Version check: " + this.updater.checkVersion());
             getLogger().info("[LogBlock] Connecting to " + user + "@" + url + "...");
-            this.pool = new MySQLConnectionPool(url, user, password);
+            pool = new MySQLConnectionPool(url, user, password);
             final Connection conn = getConnection();
             if (conn == null) {
-                this.noDb = true;
+                noDb = true;
                 return;
             }
             conn.close();
-            if (this.updater.update()) load(this);
-            this.updater.checkTables();
+            if (updater.update()) load(this);
+            updater.checkTables();
         } catch (final NullPointerException ex) {
             getLogger().log(Level.SEVERE, "[LogBlock] Error while loading: ", ex);
         } catch (final Exception ex) {
             getLogger().severe("[LogBlock] Error while loading: " + ex.getMessage());
-            this.errorAtLoading = true;
+            errorAtLoading = true;
             return;
         }
-        this.consumer = new Consumer(this);
+        consumer = new Consumer(this);
     }
 
     public void reload() {
         // TODO
+    }
+
+    Updater getUpdater() {
+        return updater;
     }
 
     private void registerEvents() {
@@ -286,9 +286,5 @@ public class LogBlock extends JavaPlugin {
         if (isLogging(Logging.NATURALSTRUCTUREGROW) || isLogging(Logging.BONEMEALSTRUCTUREGROW))
             pm.registerEvents(new StructureGrowLogging(this), this);
         if (logPlayerInfo) pm.registerEvents(new PlayerInfoLogging(this), this);
-    }
-
-    Updater getUpdater() {
-        return this.updater;
     }
 }
