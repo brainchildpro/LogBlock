@@ -16,7 +16,7 @@ import java.util.logging.Level;
 import org.bukkit.*;
 import org.bukkit.block.*;
 import org.bukkit.block.Sign;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.*;
 import org.bukkit.material.*;
 
 public class WorldEditor implements Runnable {
@@ -82,8 +82,8 @@ public class WorldEditor implements Runnable {
             }
             if (!(equalTypes(block.getTypeId(), type) || replaceAnyway.contains(block.getTypeId())))
                 return PerformResult.NO_ACTION;
-            if (state instanceof ContainerBlock) {
-                ((ContainerBlock) state).getInventory().clear();
+            if (state instanceof InventoryHolder) {
+                ((InventoryHolder) state).getInventory().clear();
                 state.update();
             }
             if (block.getTypeId() == replaced) {

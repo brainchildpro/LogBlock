@@ -6,7 +6,7 @@ import java.io.File;
 import java.util.*;
 
 import org.bukkit.*;
-import org.bukkit.block.*;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.*;
 
@@ -131,8 +131,8 @@ public class BukkitUtils {
     }
 
     public static int modifyContainer(BlockState b, ItemStack item) {
-        if (b instanceof ContainerBlock) {
-            final Inventory inv = ((ContainerBlock) b).getInventory();
+        if (b instanceof InventoryHolder) {
+            final Inventory inv = ((InventoryHolder) b).getInventory();
             if (item.getAmount() < 0) {
                 item.setAmount(-item.getAmount());
                 final ItemStack tmp = inv.removeItem(item).get(0);

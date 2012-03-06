@@ -11,7 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.*;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.*;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.*;
 
 import de.diddiz.LogBlock.*;
 
@@ -37,8 +37,8 @@ public class ChestAccessLogging extends LoggingListener {
         if (cont != null) {
             final ItemStack[] before = cont.items;
             final BlockState state = cont.loc.getBlock().getState();
-            if (!(state instanceof ContainerBlock)) return;
-            final ItemStack[] after = compressInventory(((ContainerBlock) state).getInventory()
+            if (!(state instanceof InventoryHolder)) return;
+            final ItemStack[] after = compressInventory(((InventoryHolder) state).getInventory()
                     .getContents());
             final ItemStack[] diff = compareInventories(before, after);
             for (final ItemStack item : diff)
@@ -50,9 +50,9 @@ public class ChestAccessLogging extends LoggingListener {
 
     public void checkInventoryOpen(Player player, Block block) {
         final BlockState state = block.getState();
-        if (!(state instanceof ContainerBlock)) return;
+        if (!(state instanceof InventoryHolder)) return;
         this.containers.put(player, new ContainerState(block.getLocation(),
-                compressInventory(((ContainerBlock) state).getInventory().getContents())));
+                compressInventory(((InventoryHolder) state).getInventory().getContents())));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

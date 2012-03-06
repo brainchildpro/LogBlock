@@ -279,7 +279,7 @@ public class Consumer extends TimerTask {
      */
     public void queueChestAccess(String playerName, BlockState container, short itemType, short itemAmount,
             byte itemData) {
-        if (!(container instanceof ContainerBlock)) return;
+        if (!(container instanceof InventoryHolder)) return;
         queueChestAccess(playerName, new Location(container.getWorld(), container.getX(), container.getY(),
                 container.getZ()), container.getTypeId(), itemType, itemAmount, itemData);
     }
@@ -299,13 +299,13 @@ public class Consumer extends TimerTask {
      * (air). All content is assumed to be taken.
      * 
      * @param container
-     *            Must be instanceof ContainerBlock
+     *            Must be instanceof InventoryHolder
      */
     public void queueContainerBreak(String playerName, BlockState container) {
-        if (!(container instanceof ContainerBlock)) return;
+        if (!(container instanceof InventoryHolder)) return;
         queueContainerBreak(playerName,
                 new Location(container.getWorld(), container.getX(), container.getY(), container.getZ()),
-                container.getTypeId(), container.getRawData(), ((ContainerBlock) container).getInventory());
+                container.getTypeId(), container.getRawData(), ((InventoryHolder) container).getInventory());
     }
 
     /**
