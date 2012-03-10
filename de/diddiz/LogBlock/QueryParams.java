@@ -39,11 +39,11 @@ public class QueryParams implements Cloneable {
             "chat".hashCode(), "search".hashCode(), "match".hashCode(), "loc".hashCode(),
             "location".hashCode()));
 
-    public static boolean isKeyWord(String param) {
+    public static boolean isKeyWord(final String param) {
         return keywords.contains(param.toLowerCase().hashCode());
     }
 
-    private static String[] getValues(List<String> args, int offset) {
+    private static String[] getValues(final List<String> args, final int offset) {
         int i;
         for (i = offset; i < args.size(); i++)
             if (isKeyWord(args.get(i))) break;
@@ -75,11 +75,11 @@ public class QueryParams implements Cloneable {
 
     private final LogBlock logblock;
 
-    public QueryParams(LogBlock logblock) {
+    public QueryParams(final LogBlock logblock) {
         this.logblock = logblock;
     }
 
-    public QueryParams(LogBlock logblock, CommandSender sender, List<String> args)
+    public QueryParams(final LogBlock logblock, final CommandSender sender, final List<String> args)
             throws IllegalArgumentException {
         this.logblock = logblock;
         parseArgs(sender, args);
@@ -214,7 +214,7 @@ public class QueryParams implements Cloneable {
         return getWhere(this.bct);
     }
 
-    public String getWhere(BlockChangeType blockChangeType) {
+    public String getWhere(final BlockChangeType blockChangeType) {
         final StringBuilder where = new StringBuilder("WHERE ");
         if (blockChangeType == BlockChangeType.CHAT) {
             if (this.match != null && this.match.length() > 0) {
@@ -312,7 +312,7 @@ public class QueryParams implements Cloneable {
         return where.toString();
     }
 
-    public void merge(QueryParams p) {
+    public void merge(final QueryParams p) {
         this.players = p.players;
         this.excludePlayersMode = p.excludePlayersMode;
         this.types = p.types;
@@ -329,7 +329,8 @@ public class QueryParams implements Cloneable {
         this.match = p.match;
     }
 
-    public void parseArgs(CommandSender sender, List<String> args) throws IllegalArgumentException {
+    public void parseArgs(final CommandSender sender, final List<String> args)
+            throws IllegalArgumentException {
         if (args == null || args.size() == 0)
             throw new IllegalArgumentException("No parameters specified.");
         final Player player = sender instanceof Player ? (Player) sender : null;
@@ -477,17 +478,17 @@ public class QueryParams implements Cloneable {
         if (session != null) session.lastQuery = clone();
     }
 
-    public void setLocation(Location loc) {
+    public void setLocation(final Location loc) {
         this.loc = loc;
         this.world = loc.getWorld();
     }
 
-    public void setPlayer(String playerName) {
+    public void setPlayer(final String playerName) {
         this.players.clear();
         this.players.add(playerName);
     }
 
-    public void setSelection(Selection sel) {
+    public void setSelection(final Selection sel) {
         this.sel = sel;
         this.world = sel.getWorld();
     }

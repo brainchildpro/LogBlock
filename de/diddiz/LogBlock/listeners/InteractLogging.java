@@ -12,15 +12,14 @@ import de.diddiz.LogBlock.*;
 import de.diddiz.LogBlock.config.WorldConfig;
 
 public class InteractLogging extends LoggingListener {
-    public InteractLogging(LogBlock lb) {
+    public InteractLogging(final LogBlock lb) {
         super(lb);
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerInteract(PlayerInteractEvent event) {
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPlayerInteract(final PlayerInteractEvent event) {
         final WorldConfig wcfg = getWorldConfig(event.getPlayer().getWorld());
-        if (!event.isCancelled()
-                && wcfg != null
+        if (wcfg != null
                 && (event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_BLOCK)) {
             final int type = event.getClickedBlock().getTypeId();
             final Player player = event.getPlayer();

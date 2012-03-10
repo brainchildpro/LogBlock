@@ -79,7 +79,7 @@ public class MaterialName {
     /**
      * @return Name of the material, or if it's unknown, the id.
      */
-    public static String materialName(int type) {
+    public static String materialName(final int type) {
         return materialNames.containsKey(type) ? materialNames.get(type) : String.valueOf(type);
     }
 
@@ -87,13 +87,13 @@ public class MaterialName {
      * @return Name of the material regarding it's data, or if it's unknown, the
      *         basic name.
      */
-    public static String materialName(int type, byte data) {
+    public static String materialName(final int type, final byte data) {
         final Map<Byte, String> dataNames = materialDataNames.get(type);
         if (dataNames != null) if (dataNames.containsKey(data)) return dataNames.get(data);
         return materialName(type);
     }
 
-    private static String toReadable(MaterialData matData) {
+    private static String toReadable(final MaterialData matData) {
         return matData.toString().toLowerCase().replace('_', ' ').replaceAll("[^a-z ]", "");
     }
 }

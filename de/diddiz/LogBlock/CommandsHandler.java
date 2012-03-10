@@ -34,7 +34,8 @@ public class CommandsHandler implements CommandExecutor {
         protected Statement state = null;
         protected ResultSet rs = null;
 
-        protected AbstractCommand(CommandSender sender, QueryParams params, boolean async) throws Exception {
+        protected AbstractCommand(final CommandSender sender, final QueryParams params, final boolean async)
+                throws Exception {
             this.sender = sender;
             this.params = params;
             if (async) {
@@ -56,7 +57,8 @@ public class CommandsHandler implements CommandExecutor {
     }
 
     public class CommandClearLog extends AbstractCommand {
-        public CommandClearLog(CommandSender sender, QueryParams params, boolean async) throws Exception {
+        public CommandClearLog(final CommandSender sender, final QueryParams params, final boolean async)
+                throws Exception {
             super(sender, params, async);
         }
 
@@ -171,7 +173,8 @@ public class CommandsHandler implements CommandExecutor {
     }
 
     public class CommandKillConnection extends AbstractCommand {
-        public CommandKillConnection(CommandSender s, QueryParams params, boolean async) throws Exception {
+        public CommandKillConnection(final CommandSender s, final QueryParams params, final boolean async)
+                throws Exception {
             super(s, params, async);
         }
 
@@ -189,7 +192,8 @@ public class CommandsHandler implements CommandExecutor {
     }
 
     public class CommandLookup extends AbstractCommand {
-        public CommandLookup(CommandSender sender, QueryParams params, boolean async) throws Exception {
+        public CommandLookup(final CommandSender sender, final QueryParams params, final boolean async)
+                throws Exception {
             super(sender, params, async);
         }
 
@@ -253,7 +257,8 @@ public class CommandsHandler implements CommandExecutor {
     }
 
     public class CommandRedo extends AbstractCommand {
-        public CommandRedo(CommandSender sender, QueryParams params, boolean async) throws Exception {
+        public CommandRedo(final CommandSender sender, final QueryParams params, final boolean async)
+                throws Exception {
             super(sender, params, async);
         }
 
@@ -322,7 +327,8 @@ public class CommandsHandler implements CommandExecutor {
     }
 
     public class CommandRollback extends AbstractCommand {
-        public CommandRollback(CommandSender sender, QueryParams params, boolean async) throws Exception {
+        public CommandRollback(final CommandSender sender, final QueryParams params, final boolean async)
+                throws Exception {
             super(sender, params, async);
         }
 
@@ -404,7 +410,8 @@ public class CommandsHandler implements CommandExecutor {
     }
 
     public class CommandSaveQueue extends AbstractCommand {
-        public CommandSaveQueue(CommandSender sender, QueryParams params, boolean async) throws Exception {
+        public CommandSaveQueue(final CommandSender sender, final QueryParams params, final boolean async)
+                throws Exception {
             super(sender, params, async);
         }
 
@@ -430,7 +437,8 @@ public class CommandsHandler implements CommandExecutor {
     }
 
     public class CommandTeleport extends AbstractCommand {
-        public CommandTeleport(CommandSender sender, QueryParams params, boolean async) throws Exception {
+        public CommandTeleport(final CommandSender sender, final QueryParams params, final boolean async)
+                throws Exception {
             super(sender, params, async);
         }
 
@@ -468,7 +476,8 @@ public class CommandsHandler implements CommandExecutor {
     }
 
     public class CommandWriteLogFile extends AbstractCommand {
-        public CommandWriteLogFile(CommandSender sender, QueryParams params, boolean async) throws Exception {
+        public CommandWriteLogFile(final CommandSender sender, final QueryParams params, final boolean async)
+                throws Exception {
             super(sender, params, async);
         }
 
@@ -529,7 +538,7 @@ public class CommandsHandler implements CommandExecutor {
         }
     }
 
-    static void showPage(CommandSender sender, int page) {
+    static void showPage(final CommandSender sender, final int page) {
         final Session session = getSession(sender);
         if (session.lookupCache != null && session.lookupCache.length > 0) {
             final int startpos = (page - 1) * linesPerPage;
@@ -549,7 +558,7 @@ public class CommandsHandler implements CommandExecutor {
         } else sender.sendMessage(ChatColor.RED + "No blocks in lookup cache");
     }
 
-    private static List<String> argsToList(String[] arr, int offset) {
+    private static List<String> argsToList(final String[] arr, final int offset) {
         final List<String> list = new ArrayList<String>(Arrays.asList(arr));
         for (int i = 0; i < offset; i++)
             list.remove(0);
@@ -560,13 +569,14 @@ public class CommandsHandler implements CommandExecutor {
 
     final BukkitScheduler scheduler;
 
-    CommandsHandler(LogBlock logblock) {
+    CommandsHandler(final LogBlock logblock) {
         this.logblock = logblock;
         this.scheduler = logblock.getServer().getScheduler();
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command c, String commandLabel, String[] args) {
+    public boolean onCommand(final CommandSender sender, final Command c, final String commandLabel,
+            final String[] args) {
         try {
             if (args.length == 0) {
                 sender.sendMessage(ChatColor.LIGHT_PURPLE + "LogBlock v"
@@ -829,7 +839,7 @@ public class CommandsHandler implements CommandExecutor {
         return true;
     }
 
-    boolean checkRestrictions(CommandSender sender, QueryParams params) {
+    boolean checkRestrictions(final CommandSender sender, final QueryParams params) {
         if (sender.isOp() || this.logblock.hasPermission(sender, "logblock.ignoreRestrictions"))
             return true;
         if (rollbackMaxTime > 0 && (params.before > 0 || params.since > rollbackMaxTime)) {

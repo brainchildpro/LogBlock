@@ -24,11 +24,11 @@ public class WorldEditor implements Runnable {
     public static class WorldEditorException extends Exception implements LookupCacheElement {
         private final Location loc;
 
-        public WorldEditorException(int typeBefore, int typeAfter, Location loc) {
+        public WorldEditorException(final int typeBefore, final int typeAfter, final Location loc) {
             this("Failed to replace " + materialName(typeBefore) + " with " + materialName(typeAfter), loc);
         }
 
-        public WorldEditorException(String msg, Location loc) {
+        public WorldEditorException(final String msg, final Location loc) {
             super(msg + " at " + loc.getWorld().getName() + ":" + loc.getBlockX() + ":" + loc.getBlockY()
                     + ":" + loc.getBlockZ());
             this.loc = loc;
@@ -41,8 +41,8 @@ public class WorldEditor implements Runnable {
     }
 
     private class Edit extends BlockChange {
-        public Edit(long time, Location loc, String playerName, int replaced, int type, byte data,
-                String signtext, ChestAccess ca) {
+        public Edit(final long time, final Location loc, final String playerName, final int replaced,
+                final int type, final byte data, final String signtext, final ChestAccess ca) {
             super(time, loc, playerName, replaced, type, data, signtext, ca);
         }
 
@@ -152,7 +152,7 @@ public class WorldEditor implements Runnable {
 
     public LookupCacheElement[] errors;
 
-    public WorldEditor(LogBlock logblock, World world) {
+    public WorldEditor(final LogBlock logblock, final World world) {
         this.logblock = logblock;
         this.world = world;
     }
@@ -177,8 +177,9 @@ public class WorldEditor implements Runnable {
         return successes;
     }
 
-    public void queueEdit(int x, int y, int z, int replaced, int type, byte data, String signtext,
-            short itemType, short itemAmount, byte itemData) {
+    public void queueEdit(final int x, final int y, final int z, final int replaced, final int type,
+            final byte data, final String signtext, final short itemType, final short itemAmount,
+            final byte itemData) {
         edits.add(new Edit(0, new Location(world, x, y, z), null, replaced, type, data, signtext,
                 new ChestAccess(itemType, itemAmount, itemData)));
     }

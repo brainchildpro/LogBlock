@@ -14,9 +14,9 @@ public class Tool {
     public final ToolMode mode;
     public final PermissionDefault permissionDefault;
 
-    public Tool(String name, List<String> aliases, ToolBehavior leftClickBehavior,
-            ToolBehavior rightClickBehavior, boolean defaultEnabled, int item, QueryParams params,
-            ToolMode mode, PermissionDefault permissionDefault) {
+    public Tool(final String name, final List<String> aliases, final ToolBehavior leftClickBehavior,
+            final ToolBehavior rightClickBehavior, final boolean defaultEnabled, final int item,
+            final QueryParams params, final ToolMode mode, final PermissionDefault permissionDefault) {
         this.name = name;
         this.aliases = aliases;
         this.leftClickBehavior = leftClickBehavior;

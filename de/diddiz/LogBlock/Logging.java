@@ -12,7 +12,7 @@ public enum Logging {
         this(false);
     }
 
-    private Logging(boolean defaultEnabled) {
+    private Logging(final boolean defaultEnabled) {
         this.defaultEnabled = defaultEnabled;
     }
 

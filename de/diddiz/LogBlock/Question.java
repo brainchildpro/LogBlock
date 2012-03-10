@@ -12,7 +12,7 @@ public class Question {
     private final int respondentHash;
     private final long start;
 
-    Question(Player respondent, String questionMessage, String[] answers) {
+    Question(final Player respondent, final String questionMessage, final String[] answers) {
         this.start = System.currentTimeMillis();
         this.respondent = respondent;
         this.respondentHash = respondent.getName().hashCode();
@@ -22,15 +22,15 @@ public class Question {
             this.answers.put(ans.toLowerCase().hashCode(), ans);
     }
 
-    public boolean isPlayerQuestioned(int playerNameHash) {
+    public boolean isPlayerQuestioned(final int playerNameHash) {
         return playerNameHash == this.respondentHash;
     }
 
-    public boolean isRightAnswer(int answerHash) {
+    public boolean isRightAnswer(final int answerHash) {
         return this.answers.containsKey(answerHash);
     }
 
-    public synchronized void returnAnswer(int answerHash) {
+    public synchronized void returnAnswer(final int answerHash) {
         this.answer = this.answers.get(answerHash);
         notify();
     }

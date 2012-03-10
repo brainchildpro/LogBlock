@@ -13,7 +13,7 @@ import org.bukkit.inventory.*;
 public class BukkitUtils {
     public static class ItemStackComparator implements Comparator<ItemStack> {
         @Override
-        public int compare(ItemStack a, ItemStack b) {
+        public int compare(final ItemStack a, final ItemStack b) {
             final int aType = a.getTypeId(), bType = b.getTypeId();
             if (aType < bType) return -1;
             if (aType > bType) return 1;
@@ -37,7 +37,7 @@ public class BukkitUtils {
         blockEquivalents.add(new HashSet<Integer>(Arrays.asList(93, 94)));
     }
 
-    public static ItemStack[] compareInventories(ItemStack[] items1, ItemStack[] items2) {
+    public static ItemStack[] compareInventories(final ItemStack[] items1, final ItemStack[] items2) {
         final ItemStackComparator comperator = new ItemStackComparator();
         final ArrayList<ItemStack> diff = new ArrayList<ItemStack>();
         final int l1 = items1.length, l2 = items2.length;
@@ -75,7 +75,7 @@ public class BukkitUtils {
         return diff.toArray(new ItemStack[diff.size()]);
     }
 
-    public static ItemStack[] compressInventory(ItemStack[] items) {
+    public static ItemStack[] compressInventory(final ItemStack[] items) {
         final ArrayList<ItemStack> compressed = new ArrayList<ItemStack>();
         for (final ItemStack item : items)
             if (item != null) {
@@ -94,20 +94,20 @@ public class BukkitUtils {
         return compressed.toArray(new ItemStack[compressed.size()]);
     }
 
-    public static String entityName(Entity entity) {
+    public static String entityName(final Entity entity) {
         if (entity instanceof Player) return ((Player) entity).getName();
         if (entity instanceof TNTPrimed) return "TNT";
         return entity.getClass().getSimpleName().substring(5);
     }
 
-    public static boolean equalTypes(int type1, int type2) {
+    public static boolean equalTypes(final int type1, final int type2) {
         if (type1 == type2) return true;
         for (final Set<Integer> equivalent : blockEquivalents)
             if (equivalent.contains(type1) && equivalent.contains(type2)) return true;
         return false;
     }
 
-    public static String friendlyWorldname(String worldName) {
+    public static String friendlyWorldname(final String worldName) {
         return new File(worldName).getName();
     }
 
@@ -115,7 +115,7 @@ public class BukkitUtils {
         return blockEquivalents;
     }
 
-    public static void giveTool(Player player, int type) {
+    public static void giveTool(final Player player, final int type) {
         final Inventory inv = player.getInventory();
         if (inv.contains(type))
             player.sendMessage(ChatColor.RED + "You have already a " + materialName(type));
@@ -130,7 +130,7 @@ public class BukkitUtils {
         }
     }
 
-    public static int modifyContainer(BlockState b, ItemStack item) {
+    public static int modifyContainer(final BlockState b, final ItemStack item) {
         if (b instanceof InventoryHolder) {
             final Inventory inv = ((InventoryHolder) b).getInventory();
             if (item.getAmount() < 0) {
@@ -145,11 +145,11 @@ public class BukkitUtils {
         return 0;
     }
 
-    public static byte rawData(ItemStack item) {
+    public static byte rawData(final ItemStack item) {
         return item.getType() != null ? item.getData() != null ? item.getData().getData() : 0 : 0;
     }
 
-    public static int saveSpawnHeight(Location loc) {
+    public static int saveSpawnHeight(final Location loc) {
         final World world = loc.getWorld();
         final Chunk chunk = world.getChunkAt(loc);
         if (!world.isChunkLoaded(chunk)) world.loadChunk(chunk);

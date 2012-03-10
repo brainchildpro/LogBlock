@@ -42,7 +42,7 @@ public class LogBlock extends JavaPlugin {
 
     private boolean errorAtLoading = false, noDb = false, connected = true;
 
-    public String ask(Player respondent, String questionMessage, String... answers) {
+    public String ask(final Player respondent, final String questionMessage, final String... answers) {
         final Question question = new Question(respondent, questionMessage, answers);
         questions.add(question);
         return question.ask();
@@ -54,7 +54,7 @@ public class LogBlock extends JavaPlugin {
      *            be filled with default values) and the params. World is
      *            required.
      */
-    public List<BlockChange> getBlockChanges(QueryParams params) throws SQLException {
+    public List<BlockChange> getBlockChanges(final QueryParams params) throws SQLException {
         final Connection conn = getConnection();
         Statement state = null;
         if (conn == null) throw new SQLException("No connection");
@@ -96,7 +96,7 @@ public class LogBlock extends JavaPlugin {
         return consumer;
     }
 
-    public int getCount(QueryParams params) throws SQLException {
+    public int getCount(final QueryParams params) throws SQLException {
         final Connection conn = getConnection();
         Statement state = null;
         if (conn == null) throw new SQLException("No connection");
@@ -113,14 +113,15 @@ public class LogBlock extends JavaPlugin {
         }
     }
 
-    public boolean hasPermission(CommandSender sender, String permission) {
+    public boolean hasPermission(final CommandSender sender, final String permission) {
         if (permissions != null && sender instanceof Player)
             return permissions.has((Player) sender, permission);
         return sender.hasPermission(permission);
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
+    public boolean onCommand(final CommandSender sender, final Command cmd, final String commandLabel,
+            final String[] args) {
         if (noDb)
             sender.sendMessage(ChatColor.RED
                     + "No database connected. Check your MySQL user/pw and database for typos. Start/restart your MySQL server.");

@@ -6,17 +6,17 @@ import org.bukkit.event.player.*;
 import de.diddiz.LogBlock.LogBlock;
 
 public class PlayerInfoLogging extends LoggingListener {
-    public PlayerInfoLogging(LogBlock lb) {
+    public PlayerInfoLogging(final LogBlock lb) {
         super(lb);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerJoin(PlayerJoinEvent event) {
+    public void onPlayerJoin(final PlayerJoinEvent event) {
         this.consumer.queueJoin(event.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerQuit(PlayerQuitEvent event) {
+    public void onPlayerQuit(final PlayerQuitEvent event) {
         this.consumer.queueLeave(event.getPlayer());
     }
 }

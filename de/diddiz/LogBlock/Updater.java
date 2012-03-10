@@ -18,8 +18,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import de.diddiz.LogBlock.config.WorldConfig;
 
 class Updater {
-    private static void createTable(DatabaseMetaData dbm, Statement state, String table, String query)
-            throws SQLException {
+    private static void createTable(final DatabaseMetaData dbm, final Statement state, final String table,
+            final String query) throws SQLException {
         if (!dbm.getTables(null, null, table, null).next()) {
             getLogger().log(Level.INFO, "[LogBlock] Creating table " + table + ".");
             state.execute("CREATE TABLE `" + table + "` " + query);
@@ -30,7 +30,7 @@ class Updater {
 
     private final LogBlock logblock;
 
-    Updater(LogBlock logblock) {
+    Updater(final LogBlock logblock) {
         this.logblock = logblock;
     }
 

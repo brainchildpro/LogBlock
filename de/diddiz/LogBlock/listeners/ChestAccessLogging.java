@@ -20,7 +20,7 @@ public class ChestAccessLogging extends LoggingListener {
         public final ItemStack[] items;
         public final Location loc;
 
-        ContainerState(Location loc, ItemStack[] items) {
+        ContainerState(final Location loc, final ItemStack[] items) {
             this.items = items;
             this.loc = loc;
         }
@@ -28,48 +28,46 @@ public class ChestAccessLogging extends LoggingListener {
 
     private final Map<Player, ContainerState> containers = new HashMap<Player, ContainerState>();
 
-    public ChestAccessLogging(LogBlock lb) {
+    public ChestAccessLogging(final LogBlock lb) {
         super(lb);
     }
 
-    public void checkInventoryClose(Player player) {
+    public void checkInventoryClose(final Player player) {
         final ContainerState cont = this.containers.get(player);
-        if (cont != null) {
-            final ItemStack[] before = cont.items;
-            final BlockState state = cont.loc.getBlock().getState();
-            if (!(state instanceof InventoryHolder)) return;
-            final ItemStack[] after = compressInventory(((InventoryHolder) state).getInventory()
-                    .getContents());
-            final ItemStack[] diff = compareInventories(before, after);
-            for (final ItemStack item : diff)
-                this.consumer.queueChestAccess(player.getName(), cont.loc, state.getTypeId(),
-                        (short) item.getTypeId(), (short) item.getAmount(), rawData(item));
-            this.containers.remove(player);
-        }
-    }
-
-    public void checkInventoryOpen(Player player, Block block) {
-        final BlockState state = block.getState();
+        if (cont == null) return;
+        final ItemStack[] before = cont.items;
+        final BlockState state = cont.loc.getBlock().getState();
         if (!(state instanceof InventoryHolder)) return;
-        this.containers.put(player, new ContainerState(block.getLocation(),
-                compressInventory(((InventoryHolder) state).getInventory().getContents())));
+        final ItemStack[] after = compressInventory(((InventoryHolder) state).getInventory().getContents());
+        final ItemStack[] diff = compareInventories(before, after);
+        for (final ItemStack item : diff)
+            this.consumer.queueChestAccess(player.getName(), cont.loc, state.getTypeId(),
+                    (short) item.getTypeId(), (short) item.getAmount(), rawData(item));
+        this.containers.remove(player);
+    }
+
+    public void checkInventoryOpen(final Player player, final Block block) {
+        final BlockState state = block.getState();
+        if (state instanceof InventoryHolder)
+            this.containers.put(player, new ContainerState(block.getLocation(),
+                    compressInventory(((InventoryHolder) state).getInventory().getContents())));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerChat(PlayerChatEvent event) {
+    public void onPlayerChat(final PlayerChatEvent event) {
         checkInventoryClose(event.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
+    public void onPlayerCommandPreprocess(final PlayerCommandPreprocessEvent event) {
         checkInventoryClose(event.getPlayer());
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerInteract(PlayerInteractEvent event) {
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPlayerInteract(final PlayerInteractEvent event) {
         final Player player = event.getPlayer();
         checkInventoryClose(player);
-        if (!event.isCancelled() && event.getAction() == Action.RIGHT_CLICK_BLOCK
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK
                 && isLogging(player.getWorld(), Logging.CHESTACCESS)) {
             final Block block = event.getClickedBlock();
             final int type = block.getTypeId();
@@ -78,12 +76,12 @@ public class ChestAccessLogging extends LoggingListener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerQuit(PlayerQuitEvent event) {
+    public void onPlayerQuit(final PlayerQuitEvent event) {
         checkInventoryClose(event.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerTeleport(PlayerTeleportEvent event) {
+    public void onPlayerTeleport(final PlayerTeleportEvent event) {
         checkInventoryClose(event.getPlayer());
     }
 }

@@ -23,13 +23,13 @@ public class ToolListener implements Listener {
     private final CommandsHandler handler;
     private final LogBlock logblock;
 
-    public ToolListener(LogBlock logblock) {
+    public ToolListener(final LogBlock logblock) {
         this.logblock = logblock;
         this.handler = logblock.getCommandsHandler();
     }
 
     @EventHandler
-    public void onPlayerChangedWorld(PlayerChangedWorldEvent event) {
+    public void onPlayerChangedWorld(final PlayerChangedWorldEvent event) {
         final Player player = event.getPlayer();
         if (hasSession(player)) {
             final Session session = getSession(player);
@@ -45,9 +45,9 @@ public class ToolListener implements Listener {
         }
     }
 
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        if (!event.isCancelled() && event.getMaterial() != null) {
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onPlayerInteract(final PlayerInteractEvent event) {
+        if (event.getMaterial() != null) {
             final Action action = event.getAction();
             final int type = event.getMaterial().getId();
             final Tool tool = toolsByType.get(type);

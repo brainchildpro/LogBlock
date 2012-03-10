@@ -11,7 +11,7 @@ import de.diddiz.LogBlock.Logging;
 public class WorldConfig extends LoggingEnabledMapping {
     public final String table;
 
-    public WorldConfig(File file) throws IOException {
+    public WorldConfig(final File file) throws IOException {
         final Map<String, Object> def = new HashMap<String, Object>();
         def.put("table", "lb-" + file.getName().substring(0, file.getName().length() - 4).replace(' ', '_'));
         for (final Logging l : Logging.values())

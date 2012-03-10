@@ -8,13 +8,13 @@ import org.bukkit.event.block.BlockBurnEvent;
 import de.diddiz.LogBlock.*;
 
 public class BlockBurnLogging extends LoggingListener {
-    public BlockBurnLogging(LogBlock lb) {
+    public BlockBurnLogging(final LogBlock lb) {
         super(lb);
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onBlockBurn(BlockBurnEvent event) {
-        if (!event.isCancelled() && isLogging(event.getBlock().getWorld(), Logging.FIRE))
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockBurn(final BlockBurnEvent event) {
+        if (isLogging(event.getBlock().getWorld(), Logging.FIRE))
             this.consumer.queueBlockBreak("Fire", event.getBlock().getState());
     }
 }

@@ -14,7 +14,7 @@ public class BanListener implements Listener {
     final CommandsHandler handler;
     final LogBlock logblock;
 
-    public BanListener(LogBlock logblock) {
+    public BanListener(final LogBlock logblock) {
         this.logblock = logblock;
         this.handler = logblock.getCommandsHandler();
     }

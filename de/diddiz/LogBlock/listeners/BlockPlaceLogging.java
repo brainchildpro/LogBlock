@@ -14,14 +14,14 @@ import de.diddiz.LogBlock.*;
 import de.diddiz.LogBlock.config.WorldConfig;
 
 public class BlockPlaceLogging extends LoggingListener {
-    public BlockPlaceLogging(LogBlock lb) {
+    public BlockPlaceLogging(final LogBlock lb) {
         super(lb);
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onBlockPlace(BlockPlaceEvent event) {
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockPlace(final BlockPlaceEvent event) {
         final WorldConfig wcfg = getWorldConfig(event.getBlock().getWorld());
-        if (!event.isCancelled() && wcfg != null && wcfg.isLogging(Logging.BLOCKPLACE)) {
+        if (wcfg != null && wcfg.isLogging(Logging.BLOCKPLACE)) {
             final int type = event.getBlock().getTypeId();
             final BlockState before = event.getBlockReplacedState();
             final BlockState after = event.getBlockPlaced().getState();
@@ -37,9 +37,9 @@ public class BlockPlaceLogging extends LoggingListener {
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerBucketEmpty(PlayerBucketEmptyEvent event) {
-        if (!event.isCancelled() && isLogging(event.getPlayer().getWorld(), Logging.BLOCKPLACE))
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPlayerBucketEmpty(final PlayerBucketEmptyEvent event) {
+        if (isLogging(event.getPlayer().getWorld(), Logging.BLOCKPLACE))
             this.consumer.queueBlockPlace(event.getPlayer().getName(),
                     event.getBlockClicked().getRelative(event.getBlockFace()).getLocation(),
                     event.getBucket() == Material.WATER_BUCKET ? 9 : 11, (byte) 0);

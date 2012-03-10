@@ -12,7 +12,7 @@ import de.diddiz.util.Utils.ExtensionFilenameFilter;
 public class DumpedLogImporter implements Runnable {
     private final LogBlock logblock;
 
-    DumpedLogImporter(LogBlock logblock) {
+    DumpedLogImporter(final LogBlock logblock) {
         this.logblock = logblock;
     }
 

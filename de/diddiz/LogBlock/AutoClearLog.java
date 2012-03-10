@@ -9,7 +9,7 @@ import java.util.logging.Level;
 public class AutoClearLog implements Runnable {
     private final LogBlock logblock;
 
-    AutoClearLog(LogBlock logblock) {
+    AutoClearLog(final LogBlock logblock) {
         this.logblock = logblock;
     }
 

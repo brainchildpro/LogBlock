@@ -15,7 +15,7 @@ public class FluidFlowLogging extends LoggingListener {
     private static final Set<Integer> nonFluidProofBlocks = new HashSet<Integer>(Arrays.asList(27, 28, 31,
             32, 37, 38, 39, 40, 50, 51, 55, 59, 66, 69, 70, 75, 76, 78, 93, 94, 104, 105, 106));
 
-    private static boolean isSurroundedByWater(Block block) {
+    private static boolean isSurroundedByWater(final Block block) {
         for (final BlockFace face : new BlockFace[] { BlockFace.NORTH, BlockFace.WEST, BlockFace.EAST,
                 BlockFace.SOUTH }) {
             final int type = block.getRelative(face).getTypeId();
@@ -24,14 +24,14 @@ public class FluidFlowLogging extends LoggingListener {
         return false;
     }
 
-    public FluidFlowLogging(LogBlock lb) {
+    public FluidFlowLogging(final LogBlock lb) {
         super(lb);
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onBlockFromTo(BlockFromToEvent event) {
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockFromTo(final BlockFromToEvent event) {
         final WorldConfig wcfg = getWorldConfig(event.getBlock().getWorld());
-        if (!event.isCancelled() && wcfg != null) {
+        if (wcfg != null) {
             final Block to = event.getToBlock();
             final int typeFrom = event.getBlock().getTypeId();
             final int typeTo = to.getTypeId();

@@ -5,7 +5,7 @@ import java.util.*;
 class QuestionsReaper implements Runnable {
     private final Vector<Question> questions;
 
-    public QuestionsReaper(Vector<Question> questions) {
+    public QuestionsReaper(final Vector<Question> questions) {
         this.questions = questions;
     }
 

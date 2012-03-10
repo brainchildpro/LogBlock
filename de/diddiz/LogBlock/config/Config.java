@@ -49,37 +49,35 @@ public class Config {
         return worldConfigs.values();
     }
 
-    public static WorldConfig getWorldConfig(String world) {
+    public static WorldConfig getWorldConfig(final String world) {
         return worldConfigs.get(world);
     }
 
-    public static WorldConfig getWorldConfig(World world) {
+    public static WorldConfig getWorldConfig(final World world) {
         return worldConfigs.get(world.getName());
     }
 
-    public static boolean isLogged(World world) {
+    public static boolean isLogged(final World world) {
         return worldConfigs.containsKey(world.getName());
     }
 
-    public static boolean isLogging(Logging l) {
+    public static boolean isLogging(final Logging l) {
         return superWorldConfig.isLogging(l);
     }
 
-    public static boolean isLogging(World world, Logging l) {
+    public static boolean isLogging(final World world, final Logging l) {
         final WorldConfig wcfg = worldConfigs.get(world.getName());
         return wcfg != null && wcfg.isLogging(l);
     }
 
-    public static void load(LogBlock logblock) throws DataFormatException, IOException {
+    public static void load(final LogBlock logblock) throws DataFormatException, IOException {
         final ConfigurationSection config = logblock.getConfig();
         final Map<String, Object> def = new HashMap<String, Object>();
         def.put("version", logblock.getDescription().getVersion());
         final List<String> worldNames = new ArrayList<String>();
         for (final World world : getWorlds())
             worldNames.add(world.getName());
-        if (worldNames.isEmpty()) {
-            worldNames.add("world");
-        }
+        if (worldNames.isEmpty()) worldNames.add("world");
         def.put("loggedWorlds", worldNames);
         def.put("mysql.host", "localhost");
         def.put("mysql.port", 3306);
@@ -225,7 +223,7 @@ public class Config {
                 if (wcfg.isLogging(l)) superWorldConfig.setLogging(l, true);
     }
 
-    private static String getStringIncludingInts(ConfigurationSection cfg, String key) {
+    private static String getStringIncludingInts(final ConfigurationSection cfg, final String key) {
         String str = cfg.getString(key);
         if (str == null) str = String.valueOf(cfg.getInt(key));
         if (str == null) str = "No value set for '" + key + "'";
@@ -236,11 +234,11 @@ public class Config {
 class LoggingEnabledMapping {
     private final boolean[] logging = new boolean[Logging.length];
 
-    public boolean isLogging(Logging l) {
+    public boolean isLogging(final Logging l) {
         return this.logging[l.ordinal()];
     }
 
-    public void setLogging(Logging l, boolean enabled) {
+    public void setLogging(final Logging l, final boolean enabled) {
         this.logging[l.ordinal()] = enabled;
     }
 }

@@ -12,14 +12,14 @@ import de.diddiz.LogBlock.*;
 import de.diddiz.LogBlock.config.WorldConfig;
 
 public class BlockBreakLogging extends LoggingListener {
-    public BlockBreakLogging(LogBlock lb) {
+    public BlockBreakLogging(final LogBlock lb) {
         super(lb);
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onBlockBreak(BlockBreakEvent event) {
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBlockBreak(final BlockBreakEvent event) {
         final WorldConfig wcfg = getWorldConfig(event.getBlock().getWorld());
-        if (!event.isCancelled() && wcfg != null && wcfg.isLogging(Logging.BLOCKBREAK)) {
+        if (wcfg != null && wcfg.isLogging(Logging.BLOCKBREAK)) {
             final int type = event.getBlock().getTypeId();
             if (wcfg.isLogging(Logging.SIGNTEXT) && (type == 63 || type == 68))
                 this.consumer
@@ -33,9 +33,9 @@ public class BlockBreakLogging extends LoggingListener {
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerBucketFill(PlayerBucketFillEvent event) {
-        if (!event.isCancelled() && isLogging(event.getPlayer().getWorld(), Logging.BLOCKBREAK))
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPlayerBucketFill(final PlayerBucketFillEvent event) {
+        if (isLogging(event.getPlayer().getWorld(), Logging.BLOCKBREAK))
             this.consumer.queueBlockBreak(event.getPlayer().getName(), event.getBlockClicked().getState());
     }
 }

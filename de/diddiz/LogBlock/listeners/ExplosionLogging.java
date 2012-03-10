@@ -12,14 +12,14 @@ import de.diddiz.LogBlock.*;
 import de.diddiz.LogBlock.config.WorldConfig;
 
 public class ExplosionLogging extends LoggingListener {
-    public ExplosionLogging(LogBlock lb) {
+    public ExplosionLogging(final LogBlock lb) {
         super(lb);
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onEntityExplode(EntityExplodeEvent event) {
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onEntityExplode(final EntityExplodeEvent event) {
         final WorldConfig wcfg = getWorldConfig(event.getLocation().getWorld());
-        if (!event.isCancelled() && wcfg != null) {
+        if (wcfg != null) {
             final String name;
             if (event.getEntity() == null) {
                 if (!wcfg.isLogging(Logging.MISCEXPLOSION)) return;

@@ -10,13 +10,13 @@ import de.diddiz.LogBlock.Question;
 public class LogBlockQuestionerPlayerListener implements Listener {
     private final Vector<Question> questions;
 
-    public LogBlockQuestionerPlayerListener(Vector<Question> questions) {
+    public LogBlockQuestionerPlayerListener(final Vector<Question> questions) {
         this.questions = questions;
     }
 
-    @EventHandler
-    public void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
-        if (!event.isCancelled() && !this.questions.isEmpty()) {
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onPlayerCommandPreprocess(final PlayerCommandPreprocessEvent event) {
+        if (!this.questions.isEmpty()) {
             final int playerHash = event.getPlayer().getName().hashCode();
             final int answerHash = event.getMessage().substring(1).toLowerCase().hashCode();
             for (final Question question : this.questions)

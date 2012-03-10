@@ -17,8 +17,8 @@ public class BlockChange implements LookupCacheElement {
     public final String signtext;
     public final ChestAccess ca;
 
-    public BlockChange(long date, Location loc, String playerName, int replaced, int type, byte data,
-            String signtext, ChestAccess ca) {
+    public BlockChange(final long date, final Location loc, final String playerName, final int replaced,
+            final int type, final byte data, final String signtext, final ChestAccess ca) {
         this.id = 0;
         this.date = date;
         this.loc = loc;
@@ -30,7 +30,7 @@ public class BlockChange implements LookupCacheElement {
         this.ca = ca;
     }
 
-    public BlockChange(ResultSet rs, QueryParams p) throws SQLException {
+    public BlockChange(final ResultSet rs, final QueryParams p) throws SQLException {
         this.id = p.needId ? rs.getInt("id") : 0;
         this.date = p.needDate ? rs.getTimestamp("date").getTime() : 0;
         this.loc = p.needCoords ? new Location(p.world, rs.getInt("x"), rs.getInt("y"), rs.getInt("z"))

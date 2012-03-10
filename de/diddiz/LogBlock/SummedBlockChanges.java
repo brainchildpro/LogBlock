@@ -14,7 +14,8 @@ public class SummedBlockChanges implements LookupCacheElement {
     private final int created, destroyed;
     private final float spaceFactor;
 
-    public SummedBlockChanges(ResultSet rs, QueryParams p, float spaceFactor) throws SQLException {
+    public SummedBlockChanges(final ResultSet rs, final QueryParams p, final float spaceFactor)
+            throws SQLException {
         this.group = p.sum == SummarizationMode.PLAYERS ? rs.getString(1) : materialName(rs.getInt(1));
         this.created = rs.getInt(2);
         this.destroyed = rs.getInt(3);

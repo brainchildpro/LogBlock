@@ -6,7 +6,7 @@ public enum ToolMode {
 
     private final String permission;
 
-    private ToolMode(String permission) {
+    private ToolMode(final String permission) {
         this.permission = permission;
     }
 

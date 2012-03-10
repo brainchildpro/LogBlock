@@ -7,7 +7,7 @@ public class ToolData {
     public QueryParams params;
     public ToolMode mode;
 
-    public ToolData(Tool tool, LogBlock logblock, Player player) {
+    public ToolData(final Tool tool, final LogBlock logblock, final Player player) {
         this.enabled = tool.defaultEnabled && logblock.hasPermission(player, "logblock.tools." + tool.name);
         this.params = tool.params.clone();
         this.mode = tool.mode;

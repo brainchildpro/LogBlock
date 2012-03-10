@@ -16,13 +16,13 @@ public class KillLogging extends LoggingListener {
     private final Map<Integer, Integer> lastAttackedEntity = new HashMap<Integer, Integer>();
     private final Map<Integer, Long> lastAttackTime = new HashMap<Integer, Long>();
 
-    public KillLogging(LogBlock lb) {
+    public KillLogging(final LogBlock lb) {
         super(lb);
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onEntityDamage(EntityDamageEvent event) {
-        if (!event.isCancelled() && isLogging(event.getEntity().getWorld(), Logging.KILL)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onEntityDamage(final EntityDamageEvent event) {
+        if (isLogging(event.getEntity().getWorld(), Logging.KILL)
                 && event instanceof EntityDamageByEntityEvent && event.getEntity() instanceof LivingEntity) {
             final LivingEntity victim = (LivingEntity) event.getEntity();
             final Entity killer = ((EntityDamageByEntityEvent) event).getDamager();

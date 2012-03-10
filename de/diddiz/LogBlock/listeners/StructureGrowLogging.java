@@ -10,24 +10,23 @@ import de.diddiz.LogBlock.*;
 import de.diddiz.LogBlock.config.WorldConfig;
 
 public class StructureGrowLogging extends LoggingListener {
-    public StructureGrowLogging(LogBlock lb) {
+    public StructureGrowLogging(final LogBlock lb) {
         super(lb);
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onStructureGrow(StructureGrowEvent event) {
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onStructureGrow(final StructureGrowEvent event) {
         final WorldConfig wcfg = getWorldConfig(event.getWorld());
-        if (!event.isCancelled() && wcfg != null) {
-            final String playerName;
-            if (event.getPlayer() != null) {
-                if (!wcfg.isLogging(Logging.BONEMEALSTRUCTUREGROW)) return;
-                playerName = event.getPlayer().getName();
-            } else {
-                if (!wcfg.isLogging(Logging.NATURALSTRUCTUREGROW)) return;
-                playerName = "NaturalGrow";
-            }
-            for (final BlockState state : event.getBlocks())
-                this.consumer.queueBlockReplace(playerName, state.getBlock().getState(), state);
+        if (wcfg == null) return;
+        final String playerName;
+        if (event.getPlayer() != null) {
+            if (!wcfg.isLogging(Logging.BONEMEALSTRUCTUREGROW)) return;
+            playerName = event.getPlayer().getName();
+        } else {
+            if (!wcfg.isLogging(Logging.NATURALSTRUCTUREGROW)) return;
+            playerName = "NaturalGrow";
         }
+        for (final BlockState state : event.getBlocks())
+            this.consumer.queueBlockReplace(playerName, state.getBlock().getState(), state);
     }
 }

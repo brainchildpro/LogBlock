@@ -11,11 +11,11 @@ import org.bukkit.entity.Player;
 public class Session {
     private static final Map<String, Session> sessions = new HashMap<String, Session>();
 
-    public static Session getSession(CommandSender sender) {
+    public static Session getSession(final CommandSender sender) {
         return getSession(sender.getName());
     }
 
-    public static Session getSession(String playerName) {
+    public static Session getSession(final String playerName) {
         Session session = sessions.get(playerName.toLowerCase());
         if (session == null) {
             session = new Session(getServer().getPlayer(playerName));
@@ -24,11 +24,11 @@ public class Session {
         return session;
     }
 
-    public static boolean hasSession(CommandSender sender) {
+    public static boolean hasSession(final CommandSender sender) {
         return sessions.containsKey(sender.getName().toLowerCase());
     }
 
-    public static boolean hasSession(String playerName) {
+    public static boolean hasSession(final String playerName) {
         return sessions.containsKey(playerName.toLowerCase());
     }
 
@@ -40,7 +40,7 @@ public class Session {
 
     public Map<Tool, ToolData> toolData;
 
-    private Session(Player player) {
+    private Session(final Player player) {
         this.toolData = new HashMap<Tool, ToolData>();
         final LogBlock logblock = LogBlock.getInstance();
         if (player != null) for (final Tool tool : toolsByType.values())

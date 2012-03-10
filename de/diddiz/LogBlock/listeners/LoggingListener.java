@@ -7,7 +7,7 @@ import de.diddiz.LogBlock.*;
 public class LoggingListener implements Listener {
     protected final Consumer consumer;
 
-    public LoggingListener(LogBlock lb) {
+    public LoggingListener(final LogBlock lb) {
         this.consumer = lb.getConsumer();
     }
 }
