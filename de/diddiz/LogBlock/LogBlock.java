@@ -10,7 +10,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.logging.Level;
 
-import org.bukkit.ChatColor;
+import org.bukkit.*;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
@@ -79,15 +79,16 @@ public class LogBlock extends JavaPlugin {
         try {
             final Connection conn = pool.getConnection();
             if (!connected) {
-                getLogger().info("[LogBlock] MySQL connection rebuild");
+                getLogger().info("MySQL connection rebuilt! \\o/");
                 connected = true;
             }
             return conn;
         } catch (final Exception ex) {
             if (connected) {
-                getLogger().log(Level.SEVERE, "[LogBlock] Error while fetching connection: ", ex);
+                getLogger().log(Level.SEVERE, "Error while fetching connection :( ", ex);
                 connected = false;
-            } else getLogger().severe("[LogBlock] MySQL connection lost");
+            } else getLogger()
+                    .severe("MySQL connection lost! I'm spamming this until you fix the damn MySQL server, deal with it!");
             return null;
         }
     }
@@ -144,6 +145,9 @@ public class LogBlock extends JavaPlugin {
                     if (tries > 0)
                         getLogger().info("[LogBlock] Remaining tries: " + tries);
                     else {
+                        getServer().savePlayers();
+                        for (World w : getServer().getWorlds())
+                            w.save();
                         getLogger().info(
                                 "Unable to save queue to database. Trying to write to a local file.");
                         try {
@@ -177,20 +181,20 @@ public class LogBlock extends JavaPlugin {
             try {
                 download(getLogger(), new URL("http://diddiz.insane-architects.net/download/WorldEdit.jar"),
                         new File("lib/WorldEdit.jar"));
-                getLogger().info("[LogBlock] You've to restart/reload your server now.");
+                getLogger().info("You've to restart/reload your server now.");
                 pm.disablePlugin(this);
                 return;
             } catch (final Exception ex) {
                 getLogger()
                         .warning(
-                                "[LogBlock] Failed to download WorldEdit. You may have to download it manually. You don't have to install it, just place the jar in the lib folder.");
+                                "Failed to download WorldEdit. You may have to download it manually. You don't have to install it, just place the jar in the lib folder.");
             }
         commandsHandler = new CommandsHandler(this);
         getCommand("lb").setExecutor(commandsHandler);
         if (pm.getPlugin("Permissions") != null) {
             permissions = ((Permissions) pm.getPlugin("Permissions")).getHandler();
-            getLogger().info("[LogBlock] Permissions plugin found.");
-        } else getLogger().info("[LogBlock] Permissions plugin not found. Using Bukkit Permissions.");
+            getLogger().info("Permissions plugin found.");
+        } else getLogger().info("Permissions plugin not found. Using Bukkit Permissions.");
         if (enableAutoClearLog && autoClearLogDelay > 0)
             getServer().getScheduler().scheduleAsyncRepeatingTask(this, new AutoClearLog(this), 6000,
                     autoClearLogDelay * 60 * 20);
@@ -199,18 +203,16 @@ public class LogBlock extends JavaPlugin {
         if (useBukkitScheduler) {
             if (getServer().getScheduler().scheduleAsyncRepeatingTask(this, consumer, delayBetweenRuns * 20,
                     delayBetweenRuns * 20) > 0)
-                getLogger().info("[LogBlock] Scheduled consumer with bukkit scheduler.");
+                getLogger().info("Scheduled consumer with bukkit scheduler.");
             else {
                 getLogger()
                         .warning(
-                                "[LogBlock] Failed to schedule consumer with bukkit scheduler. Now trying schedule with timer.");
-                timer = new Timer();
-                timer.scheduleAtFixedRate(consumer, delayBetweenRuns * 1000, delayBetweenRuns * 1000);
+                                "Failed to schedule consumer with bukkit scheduler. Now trying schedule with timer.");
+                scheduleTimer();
             }
         } else {
-            timer = new Timer();
-            timer.scheduleAtFixedRate(consumer, delayBetweenRuns * 1000, delayBetweenRuns * 1000);
-            getLogger().info("[LogBlock] Scheduled consumer with timer.");
+            scheduleTimer();
+            getLogger().info("Scheduled consumer with timer.");
         }
         for (final Tool tool : toolsByType.values())
             if (pm.getPermission("logblock.tools." + tool.name) == null) {
@@ -256,6 +258,11 @@ public class LogBlock extends JavaPlugin {
 
     Updater getUpdater() {
         return updater;
+    }
+
+    void scheduleTimer() {
+        timer = new Timer();
+        timer.scheduleAtFixedRate(consumer, delayBetweenRuns * 1000, delayBetweenRuns * 1000);
     }
 
     private void registerEvents() {

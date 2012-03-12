@@ -172,6 +172,8 @@ public class Consumer extends TimerTask {
 
     private final Lock lock = new ReentrantLock();
 
+    private int killConnectionAfterLastUnixtime = (int) (System.currentTimeMillis() / 1000L);
+
     Consumer(final LogBlock logblock) {
         this.logblock = logblock;
         try {
@@ -273,7 +275,7 @@ public class Consumer extends TimerTask {
     }
 
     public void queueChat(final String player, final String message) {
-        queue.add(new ChatRow(player, message.replace("\\", "\\\\").replace("'", "\\'")));
+        addToQueue(new ChatRow(player, message.replace("\\", "\\\\").replace("'", "\\'")));
     }
 
     /**
@@ -326,7 +328,7 @@ public class Consumer extends TimerTask {
     }
 
     public void queueJoin(final Player player) {
-        queue.add(new PlayerJoinRow(player));
+        addToQueue(new PlayerJoinRow(player));
     }
 
     /**
@@ -356,7 +358,7 @@ public class Consumer extends TimerTask {
     public void queueKill(final Location location, final String killerName, final String victimName,
             final int weapon) {
         if (victimName == null || !isLogged(location.getWorld())) return;
-        queue.add(new KillRow(location, killerName == null ? null : killerName.replaceAll("[^a-zA-Z0-9_]",
+        addToQueue(new KillRow(location, killerName == null ? null : killerName.replaceAll("[^a-zA-Z0-9_]",
                 ""), victimName.replaceAll("[^a-zA-Z0-9_]", ""), weapon));
     }
 
@@ -378,7 +380,7 @@ public class Consumer extends TimerTask {
     }
 
     public void queueLeave(final Player player) {
-        queue.add(new PlayerLeaveRow(player));
+        addToQueue(new PlayerLeaveRow(player));
     }
 
     /**
@@ -424,12 +426,7 @@ public class Consumer extends TimerTask {
         Statement state = null;
         if (getQueueSize() > 1000)
             getLogger().info("[LogBlock Consumer] Queue overloaded. Size: " + getQueueSize());
-        if (getQueueSize() > killConnectionAfter) if (conn != null) try {
-            conn.close();
-            getLogger().severe("[LogBlock Consumer] Connection killed. Queue size: " + getQueueSize());
-        } catch (final SQLException e) {
-            e.printStackTrace();
-        }
+        if (getQueueSize() >= killConnectionAfter) killConnection();
         try {
             if (conn == null) return;
             conn.setAutoCommit(false);
@@ -518,13 +515,45 @@ public class Consumer extends TimerTask {
         return playerIds.containsKey(playerName);
     }
 
+    private void addToQueue(Row b) {
+        queue.add(b);
+        if (queue.size() >= killConnectionAfter) killConnection();
+    }
+
+    private void killConnection() {
+        int currUnixtime = (int) (System.currentTimeMillis() / 1000L);
+        int diff = currUnixtime - killConnectionAfterLastUnixtime;
+        if (diff >= 10) {
+            Connection conn = logblock.getConnection();
+            boolean conndead = conn == null;
+            killConnectionAfterLastUnixtime = currUnixtime;
+            if (conndead) {
+                getLogger()
+                        .severe("[Consumer] Tried to kill connection but connection is already dead! Is the MySQL server up?");
+                if (diff >= 100)
+                    for (Player p : Bukkit.getServer().getOnlinePlayers()) {
+                        if (!p.isOp()) continue;
+                        p.sendMessage(ChatColor.RED
+                                + "[LogBlock] Warning: The MySQL connection was unexpectedly closed.");
+                    }
+                getLogger().warning("[Consumer] Queue size: " + getQueueSize());
+            } else try {
+                conn.close();
+                getLogger().severe("[Consumer] Connection killed. Queue size: " + getQueueSize());
+
+            } catch (final Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private void queueBlock(final String playerName, final Location loc, final int typeBefore,
             final int typeAfter, final byte data, final String signtext, final ChestAccess ca) {
         if (playerName == null || loc == null || typeBefore < 0 || typeAfter < 0 || typeBefore > 255
                 || typeAfter > 255 || hiddenPlayers.contains(playerName) || !isLogged(loc.getWorld())
                 || typeBefore != typeAfter && hiddenBlocks.contains(typeBefore)
                 && hiddenBlocks.contains(typeAfter)) return;
-        queue.add(new BlockRow(loc, playerName.replaceAll("[^a-zA-Z0-9_]", ""), typeBefore, typeAfter, data,
-                signtext != null ? signtext.replace("\\", "\\\\").replace("'", "\\'") : null, ca));
+        addToQueue(new BlockRow(loc, playerName.replaceAll("[^a-zA-Z0-9_]", ""), typeBefore, typeAfter,
+                data, signtext != null ? signtext.replace("\\", "\\\\").replace("'", "\\'") : null, ca));
     }
 }
