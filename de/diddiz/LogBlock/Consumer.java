@@ -523,7 +523,7 @@ public class Consumer extends TimerTask {
     private void killConnection() {
         int currUnixtime = (int) (System.currentTimeMillis() / 1000L);
         int diff = currUnixtime - killConnectionAfterLastUnixtime;
-        if (diff >= 10) {
+        if (diff >= 25) {
             Connection conn = logblock.getConnection();
             boolean conndead = conn == null;
             killConnectionAfterLastUnixtime = currUnixtime;
@@ -541,7 +541,8 @@ public class Consumer extends TimerTask {
                 conn.close();
                 getLogger().severe("[Consumer] Connection killed. Queue size: " + getQueueSize());
 
-            } catch (final Exception e) {
+            } catch (Exception e) {
+                getLogger().severe("[Consumer] Error while trying to close the connection:");
                 e.printStackTrace();
             }
         }

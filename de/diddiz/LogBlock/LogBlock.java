@@ -153,10 +153,12 @@ public class LogBlock extends JavaPlugin {
                         try {
                             consumer.writeToFile();
                             getLogger().info("Successfully dumped queue. Disabling..");
-                            break;
+                            if (pool != null) pool.close();
+                            return;
                         } catch (final FileNotFoundException ex) {
                             getLogger().info("Failed to write. Given up.");
-                            break;
+                            if (pool != null) pool.close();
+                            return;
                         }
                     }
                     consumer.run();
