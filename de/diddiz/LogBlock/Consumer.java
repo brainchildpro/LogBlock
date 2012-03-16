@@ -11,7 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.*;
 import java.util.logging.Level;
 
-import org.bukkit.*;
+import org.bukkit.Location;
 import org.bukkit.block.*;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.*;
@@ -171,8 +171,6 @@ public class Consumer extends TimerTask {
     final Map<String, Integer> playerIds = new HashMap<String, Integer>();
 
     private final Lock lock = new ReentrantLock();
-
-    private int killConnectionAfterLastUnixtime = (int) (System.currentTimeMillis() / 1000L);
 
     Consumer(final LogBlock logblock) {
         this.logblock = logblock;
@@ -362,23 +360,6 @@ public class Consumer extends TimerTask {
                 ""), victimName.replaceAll("[^a-zA-Z0-9_]", ""), weapon));
     }
 
-    /**
-     * @param world
-     *            World the victim was inside.
-     * @param killerName
-     *            Name of the killer. Can be null.
-     * @param victimName
-     *            Name of the victim. Can't be null.
-     * @param weapon
-     *            Item id of the weapon. 0 for no weapon.
-     * @deprecated Use {@link #queueKill(Location,String,String,int)} instead
-     */
-    @Deprecated
-    public void queueKill(final World world, final String killerName, final String victimName,
-            final int weapon) {
-        queueKill(new Location(world, 0, 0, 0), killerName, victimName, weapon);
-    }
-
     public void queueLeave(final Player player) {
         addToQueue(new PlayerLeaveRow(player));
     }
@@ -426,7 +407,7 @@ public class Consumer extends TimerTask {
         Statement state = null;
         if (getQueueSize() > 1000)
             getLogger().info("[LogBlock Consumer] Queue overloaded. Size: " + getQueueSize());
-        if (getQueueSize() >= killConnectionAfter) killConnection();
+        if (getQueueSize() >= dropQueueAfter) dropQueue();
         try {
             if (conn == null) return;
             conn.setAutoCommit(false);
@@ -517,39 +498,17 @@ public class Consumer extends TimerTask {
 
     private void addToQueue(Row b) {
         queue.add(b);
-        if (queue.size() >= killConnectionAfter) killConnection();
+        if (queue.size() >= dropQueueAfter) dropQueue();
     }
 
-    private void killConnection() {
-        int currUnixtime = (int) (System.currentTimeMillis() / 1000L);
-        int diff = currUnixtime - killConnectionAfterLastUnixtime;
-        if (diff >= 25) {
-            Connection conn = logblock.getConnection();
-            boolean conndead = conn == null;
-            killConnectionAfterLastUnixtime = currUnixtime;
-            if (conndead) {
-                getLogger()
-                        .severe("[Consumer] Tried to kill connection but connection is already dead! Is the MySQL server up?");
-                if (diff >= 100) {
-                    for (Player p : Bukkit.getServer().getOnlinePlayers()) {
-                        if (!p.isOp()) continue;
-                        p.sendMessage(ChatColor.RED
-                                + "[LogBlock] Warning: The MySQL connection was unexpectedly closed.");
-                    }
-                    getLogger().info(
-                            "[Consumer] Saving world and player data in case this doesn't turn out well.");
-                    Bukkit.getServer().savePlayers();
-                    for (World w : Bukkit.getServer().getWorlds())
-                        w.save();
-                }
-                getLogger().warning("[Consumer] Queue size: " + getQueueSize());
-            } else try {
-                conn.close();
-                getLogger().severe("[Consumer] Connection killed. Queue size: " + getQueueSize());
-
-            } catch (Exception e) {
-                getLogger().severe("[Consumer] Error while trying to close the connection:");
-                e.printStackTrace();
+    private void dropQueue() {
+        if (getQueueSize() > 0) {
+            getLogger().info("[LogBlock] Dumping queue to files. Queue size " + getQueueSize());
+            try {
+                writeToFile();
+                getLogger().info("Successfully dumped queue (queue size: " + getQueueSize() + ") \\o/");
+            } catch (Exception ex) {
+                getLogger().warning("Failed to write. Given up.");
             }
         }
     }

@@ -31,7 +31,7 @@ public class MySQLConnectionPool implements Closeable {
             this.conn = conn;
             this.inuse = false;
             this.timestamp = 0;
-            this.networkTimeout = 30;
+            this.networkTimeout = 10;
             this.schema = "default";
         }
 

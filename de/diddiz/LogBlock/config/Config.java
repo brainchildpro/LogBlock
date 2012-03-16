@@ -24,7 +24,7 @@ public class Config {
     private static LoggingEnabledMapping superWorldConfig;
     private static Map<String, WorldConfig> worldConfigs;
     public static String url, user, password;
-    public static int delayBetweenRuns, forceToProcessAtLeast, timePerRun, killConnectionAfter;
+    public static int delayBetweenRuns, forceToProcessAtLeast, timePerRun, dropQueueAfter;
     public static boolean useBukkitScheduler;
     public static boolean enableAutoClearLog;
     public static List<String> autoClearLog;
@@ -88,7 +88,7 @@ public class Config {
         def.put("consumer.forceToProcessAtLeast", 20);
         def.put("consumer.timePerRun", 200);
         def.put("consumer.useBukkitScheduler", true);
-        def.put("consumer.killConnectionAfter", 2500);
+        def.put("consumer.dropQueueAfter", 4000);
         def.put("clearlog.dumpDeletedLog", false);
         def.put("clearlog.enableAutoClearLog", false);
         def.put("clearlog.auto", Arrays.asList("world \"world\" before 365 days all",
@@ -142,7 +142,7 @@ public class Config {
         forceToProcessAtLeast = config.getInt("consumer.forceToProcessAtLeast", 0);
         timePerRun = config.getInt("consumer.timePerRun", 100);
         useBukkitScheduler = config.getBoolean("consumer.useBukkitScheduler", true);
-        killConnectionAfter = config.getInt("consumer.killConnectionAfter");
+        dropQueueAfter = config.getInt("consumer.killConnectionAfter");
         enableAutoClearLog = config.getBoolean("clearlog.enableAutoClearLog");
         autoClearLog = config.getStringList("clearlog.auto");
         dumpDeletedLog = config.getBoolean("clearlog.dumpDeletedLog", false);
