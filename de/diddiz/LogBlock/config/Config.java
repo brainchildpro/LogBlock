@@ -142,7 +142,7 @@ public class Config {
         forceToProcessAtLeast = config.getInt("consumer.forceToProcessAtLeast", 0);
         timePerRun = config.getInt("consumer.timePerRun", 100);
         useBukkitScheduler = config.getBoolean("consumer.useBukkitScheduler", true);
-        dropQueueAfter = config.getInt("consumer.killConnectionAfter");
+        dropQueueAfter = config.getInt("consumer.dropQueueAfter");
         enableAutoClearLog = config.getBoolean("clearlog.enableAutoClearLog");
         autoClearLog = config.getStringList("clearlog.auto");
         dumpDeletedLog = config.getBoolean("clearlog.dumpDeletedLog", false);

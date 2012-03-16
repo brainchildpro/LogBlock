@@ -502,14 +502,12 @@ public class Consumer extends TimerTask {
     }
 
     private void dropQueue() {
-        if (getQueueSize() > 0) {
-            getLogger().info("[LogBlock] Dumping queue to files. Queue size " + getQueueSize());
-            try {
-                writeToFile();
-                getLogger().info("Successfully dumped queue (queue size: " + getQueueSize() + ") \\o/");
-            } catch (Exception ex) {
-                getLogger().warning("Failed to write. Given up.");
-            }
+        getLogger().info("[LogBlock] Dumping queue to files. Queue size " + getQueueSize());
+        try {
+            writeToFile();
+            getLogger().info("Successfully dumped queue (queue size: " + getQueueSize() + ") \\o/");
+        } catch (Exception ex) {
+            getLogger().warning("Failed to write. Given up :(");
         }
     }
 
