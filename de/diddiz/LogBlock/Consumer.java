@@ -530,12 +530,18 @@ public class Consumer extends TimerTask {
             if (conndead) {
                 getLogger()
                         .severe("[Consumer] Tried to kill connection but connection is already dead! Is the MySQL server up?");
-                if (diff >= 100)
+                if (diff >= 100) {
                     for (Player p : Bukkit.getServer().getOnlinePlayers()) {
                         if (!p.isOp()) continue;
                         p.sendMessage(ChatColor.RED
                                 + "[LogBlock] Warning: The MySQL connection was unexpectedly closed.");
                     }
+                    getLogger().info(
+                            "[Consumer] Saving world and player data in case this doesn't turn out well.");
+                    Bukkit.getServer().savePlayers();
+                    for (World w : Bukkit.getServer().getWorlds())
+                        w.save();
+                }
                 getLogger().warning("[Consumer] Queue size: " + getQueueSize());
             } else try {
                 conn.close();
