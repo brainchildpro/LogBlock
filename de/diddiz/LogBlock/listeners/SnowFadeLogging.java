@@ -2,6 +2,7 @@ package de.diddiz.LogBlock.listeners;
 
 import static de.diddiz.LogBlock.config.Config.isLogging;
 
+import org.bukkit.block.Block;
 import org.bukkit.event.*;
 import org.bukkit.event.block.BlockFadeEvent;
 
@@ -14,11 +15,11 @@ public class SnowFadeLogging extends LoggingListener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockFade(final BlockFadeEvent event) {
-        if (isLogging(event.getBlock().getWorld(), Logging.SNOWFADE)) {
-            final int type = event.getBlock().getTypeId();
+        final Block b = event.getBlock();
+        if (isLogging(b.getWorld(), Logging.SNOWFADE)) {
+            final int type = b.getTypeId();
             if (type == 78 || type == 79)
-                this.consumer
-                        .queueBlockReplace("SnowFade", event.getBlock().getState(), event.getNewState());
+                consumer.queueBlockReplace("SnowFade", b.getState(), event.getNewState());
         }
     }
 }

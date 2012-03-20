@@ -3,10 +3,12 @@ package de.diddiz.LogBlock.listeners;
 import static de.diddiz.LogBlock.config.Config.getWorldConfig;
 import static de.diddiz.LogBlock.config.Config.isLogging;
 
-import org.bukkit.block.Sign;
+import org.bukkit.Material;
+import org.bukkit.block.*;
+import org.bukkit.entity.Player;
 import org.bukkit.event.*;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.bukkit.event.block.*;
+import org.bukkit.event.player.*;
 
 import de.diddiz.LogBlock.*;
 import de.diddiz.LogBlock.config.WorldConfig;
@@ -20,22 +22,36 @@ public class BlockBreakLogging extends LoggingListener {
     public void onBlockBreak(final BlockBreakEvent event) {
         final WorldConfig wcfg = getWorldConfig(event.getBlock().getWorld());
         if (wcfg != null && wcfg.isLogging(Logging.BLOCKBREAK)) {
+            final String n = event.getPlayer().getName();
+            final Block block = event.getBlock();
+            final BlockState bs = block.getState();
             final int type = event.getBlock().getTypeId();
             if (wcfg.isLogging(Logging.SIGNTEXT) && (type == 63 || type == 68))
-                this.consumer
-                        .queueSignBreak(event.getPlayer().getName(), (Sign) event.getBlock().getState());
+                consumer.queueSignBreak(n, (Sign) bs);
             else if (wcfg.isLogging(Logging.CHESTACCESS) && (type == 23 || type == 54 || type == 61))
-                this.consumer.queueContainerBreak(event.getPlayer().getName(), event.getBlock().getState());
+                consumer.queueContainerBreak(n, bs);
             else if (type == 79)
-                this.consumer.queueBlockReplace(event.getPlayer().getName(), event.getBlock().getState(), 9,
-                        (byte) 0);
-            else this.consumer.queueBlockBreak(event.getPlayer().getName(), event.getBlock().getState());
+                consumer.queueBlockReplace(n, bs, 9, (byte) 0);
+            else consumer.queueBlockBreak(n, bs);
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerBucketFill(final PlayerBucketFillEvent event) {
-        if (isLogging(event.getPlayer().getWorld(), Logging.BLOCKBREAK))
-            this.consumer.queueBlockBreak(event.getPlayer().getName(), event.getBlockClicked().getState());
+        final Player p = event.getPlayer();
+        if (isLogging(p.getWorld(), Logging.BLOCKBREAK))
+            consumer.queueBlockBreak(p.getName(), event.getBlockClicked().getState());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPlayerInteract(final PlayerInteractEvent event) {
+        if(!event.hasBlock()) return;
+        if(event.getMaterial() != Material.FIRE) return;
+        if(event.getAction() != Action.LEFT_CLICK_BLOCK) return;
+        
+        final Player p = event.getPlayer();
+        if (isLogging(p.getWorld(), Logging.BLOCKBREAK)) {
+            consumer.queueBlockBreak(p.getName(), event.getClickedBlock().getState());
+        }
     }
 }

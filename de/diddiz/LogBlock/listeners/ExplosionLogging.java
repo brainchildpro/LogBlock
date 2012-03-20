@@ -44,12 +44,13 @@ public class ExplosionLogging extends LoggingListener {
                 name = "Explosion";
             }
             for (final Block block : event.blockList()) {
+                final BlockState bs = block.getState();
                 final int type = block.getTypeId();
                 if (wcfg.isLogging(Logging.SIGNTEXT) & (type == 63 || type == 68))
-                    this.consumer.queueSignBreak(name, (Sign) block.getState());
+                    consumer.queueSignBreak(name, (Sign) bs);
                 else if (wcfg.isLogging(Logging.CHESTACCESS) && (type == 23 || type == 54 || type == 61))
-                    this.consumer.queueContainerBreak(name, block.getState());
-                else this.consumer.queueBlockBreak(name, block.getState());
+                    consumer.queueContainerBreak(name, bs);
+                else consumer.queueBlockBreak(name, bs);
             }
         }
     }

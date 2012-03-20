@@ -2,6 +2,7 @@ package de.diddiz.LogBlock.listeners;
 
 import static de.diddiz.LogBlock.config.Config.isLogging;
 
+import org.bukkit.block.Block;
 import org.bukkit.event.*;
 import org.bukkit.event.block.BlockBurnEvent;
 
@@ -14,7 +15,8 @@ public class BlockBurnLogging extends LoggingListener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBurn(final BlockBurnEvent event) {
-        if (isLogging(event.getBlock().getWorld(), Logging.FIRE))
-            this.consumer.queueBlockBreak("Fire", event.getBlock().getState());
+        Block b = event.getBlock();
+        if (isLogging(b.getWorld(), Logging.FIRE))
+            this.consumer.queueBlockBreak("Fire", b.getState());
     }
 }

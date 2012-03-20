@@ -30,44 +30,44 @@ public class FluidFlowLogging extends LoggingListener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockFromTo(final BlockFromToEvent event) {
-        final WorldConfig wcfg = getWorldConfig(event.getBlock().getWorld());
+        final Block b = event.getBlock();
+        final WorldConfig wcfg = getWorldConfig(b.getWorld());
         if (wcfg != null) {
             final Block to = event.getToBlock();
-            final int typeFrom = event.getBlock().getTypeId();
+            final int typeFrom = b.getTypeId();
             final int typeTo = to.getTypeId();
             final boolean canFlow = typeTo == 0 || nonFluidProofBlocks.contains(typeTo);
             if (typeFrom == 10 || typeFrom == 11) {
                 if (canFlow) {
-                    if (isSurroundedByWater(to) && event.getBlock().getData() <= 2)
-                        this.consumer.queueBlockReplace("LavaFlow", to.getState(), 4, (byte) 0);
+                    if (isSurroundedByWater(to) && b.getData() <= 2)
+                        consumer.queueBlockReplace("LavaFlow", to.getState(), 4, (byte) 0);
                     else if (typeTo == 0) {
                         if (wcfg.isLogging(Logging.LAVAFLOW))
-                            this.consumer.queueBlockPlace("LavaFlow", to.getLocation(), 10, (byte) (event
+                            consumer.queueBlockPlace("LavaFlow", to.getLocation(), 10, (byte) (event
                                     .getBlock().getData() + 1));
-                    } else this.consumer.queueBlockReplace("LavaFlow", to.getState(), 10, (byte) (event
+                    } else consumer.queueBlockReplace("LavaFlow", to.getState(), 10, (byte) (event
                             .getBlock().getData() + 1));
                 } else if (typeTo == 8 || typeTo == 9) if (event.getFace() == BlockFace.DOWN)
-                    this.consumer.queueBlockReplace("LavaFlow", to.getState(), 1, (byte) 0);
-                else this.consumer.queueBlockReplace("LavaFlow", to.getState(), 4, (byte) 0);
+                    consumer.queueBlockReplace("LavaFlow", to.getState(), 1, (byte) 0);
+                else consumer.queueBlockReplace("LavaFlow", to.getState(), 4, (byte) 0);
             } else if (typeFrom == 8 || typeFrom == 9) {
                 if (typeTo == 0) {
                     if (wcfg.isLogging(Logging.WATERFLOW))
-                        this.consumer.queueBlockPlace("WaterFlow", to.getLocation(), 8, (byte) (event
-                                .getBlock().getData() + 1));
+                        consumer.queueBlockPlace("WaterFlow", to.getLocation(), 8, (byte) (event.getBlock()
+                                .getData() + 1));
                 } else if (nonFluidProofBlocks.contains(typeTo))
-                    this.consumer.queueBlockReplace("WaterFlow", to.getState(), 8, (byte) (event.getBlock()
-                            .getData() + 1));
+                    consumer.queueBlockReplace("WaterFlow", to.getState(), 8, (byte) (b.getData() + 1));
                 else if (typeTo == 10 || typeTo == 11)
                     if (to.getData() == 0)
-                        this.consumer.queueBlockReplace("WaterFlow", to.getState(), 49, (byte) 0);
+                        consumer.queueBlockReplace("WaterFlow", to.getState(), 49, (byte) 0);
                     else if (event.getFace() == BlockFace.DOWN)
-                        this.consumer.queueBlockReplace("LavaFlow", to.getState(), 1, (byte) 0);
+                        consumer.queueBlockReplace("LavaFlow", to.getState(), 1, (byte) 0);
                 if (typeTo == 0 || nonFluidProofBlocks.contains(typeTo))
                     for (final BlockFace face : new BlockFace[] { BlockFace.DOWN, BlockFace.NORTH,
                             BlockFace.WEST, BlockFace.EAST, BlockFace.SOUTH }) {
                         final Block lower = to.getRelative(face);
                         if (lower.getTypeId() == 10 || lower.getTypeId() == 11)
-                            this.consumer.queueBlockReplace("WaterFlow", lower.getState(),
+                            consumer.queueBlockReplace("WaterFlow", lower.getState(),
                                     lower.getData() == 0 ? 49 : 4, (byte) 0);
                     }
             }

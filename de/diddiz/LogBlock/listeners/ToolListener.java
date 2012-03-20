@@ -30,16 +30,16 @@ public class ToolListener implements Listener {
 
     @EventHandler
     public void onPlayerChangedWorld(final PlayerChangedWorldEvent event) {
-        final Player player = event.getPlayer();
-        if (hasSession(player)) {
-            final Session session = getSession(player);
+        final Player p = event.getPlayer();
+        if (hasSession(p)) {
+            final Session session = getSession(p);
             for (final Entry<Tool, ToolData> entry : session.toolData.entrySet()) {
                 final Tool tool = entry.getKey();
                 final ToolData toolData = entry.getValue();
-                if (toolData.enabled && !this.logblock.hasPermission(player, "logblock.tools." + tool.name)) {
+                if (toolData.enabled && !this.logblock.hasPermission(p, "logblock.tools." + tool.name)) {
                     toolData.enabled = false;
-                    player.getInventory().removeItem(new ItemStack(tool.item, 1));
-                    player.sendMessage(ChatColor.GREEN + "Tool disabled.");
+                    p.getInventory().removeItem(new ItemStack(tool.item, 1));
+                    p.sendMessage(ChatColor.GREEN + "Tool disabled.");
                 }
             }
         }

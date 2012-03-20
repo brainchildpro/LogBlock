@@ -2,6 +2,7 @@ package de.diddiz.LogBlock.listeners;
 
 import static de.diddiz.LogBlock.config.Config.isLogging;
 
+import org.bukkit.block.Block;
 import org.bukkit.event.*;
 import org.bukkit.event.block.LeavesDecayEvent;
 
@@ -14,7 +15,8 @@ public class LeavesDecayLogging extends LoggingListener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onLeavesDecay(final LeavesDecayEvent event) {
-        if (isLogging(event.getBlock().getWorld(), Logging.LEAVESDECAY))
-            this.consumer.queueBlockBreak("LeavesDecay", event.getBlock().getState());
+        Block b = event.getBlock();
+        if (isLogging(b.getWorld(), Logging.LEAVESDECAY))
+            this.consumer.queueBlockBreak("LeavesDecay", b.getState());
     }
 }

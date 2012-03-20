@@ -27,6 +27,6 @@ public class StructureGrowLogging extends LoggingListener {
             playerName = "NaturalGrow";
         }
         for (final BlockState state : event.getBlocks())
-            this.consumer.queueBlockReplace(playerName, state.getBlock().getState(), state);
+            consumer.queueBlockReplace(playerName, state.getBlock().getState(), state);
     }
 }

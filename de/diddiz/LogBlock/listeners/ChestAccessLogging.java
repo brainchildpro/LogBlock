@@ -41,15 +41,15 @@ public class ChestAccessLogging extends LoggingListener {
         final ItemStack[] after = compressInventory(((InventoryHolder) state).getInventory().getContents());
         final ItemStack[] diff = compareInventories(before, after);
         for (final ItemStack item : diff)
-            this.consumer.queueChestAccess(player.getName(), cont.loc, state.getTypeId(),
+            consumer.queueChestAccess(player.getName(), cont.loc, state.getTypeId(),
                     (short) item.getTypeId(), (short) item.getAmount(), rawData(item));
-        this.containers.remove(player);
+        containers.remove(player);
     }
 
     public void checkInventoryOpen(final Player player, final Block block) {
         final BlockState state = block.getState();
         if (state instanceof InventoryHolder)
-            this.containers.put(player, new ContainerState(block.getLocation(),
+            containers.put(player, new ContainerState(block.getLocation(),
                     compressInventory(((InventoryHolder) state).getInventory().getContents())));
     }
 
@@ -65,13 +65,13 @@ public class ChestAccessLogging extends LoggingListener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerInteract(final PlayerInteractEvent event) {
-        final Player player = event.getPlayer();
-        checkInventoryClose(player);
+        final Player p = event.getPlayer();
+        checkInventoryClose(p);
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK
-                && isLogging(player.getWorld(), Logging.CHESTACCESS)) {
+                && isLogging(p.getWorld(), Logging.CHESTACCESS)) {
             final Block block = event.getClickedBlock();
             final int type = block.getTypeId();
-            if (type == 23 || type == 54 || type == 61 || type == 62) checkInventoryOpen(player, block);
+            if (type == 23 || type == 54 || type == 61 || type == 62) checkInventoryOpen(p, block);
         }
     }
 

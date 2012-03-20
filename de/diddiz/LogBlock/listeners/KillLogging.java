@@ -37,9 +37,9 @@ public class KillLogging extends LoggingListener {
                     && this.lastAttackedEntity.get(killer.getEntityId()) == victim.getEntityId()
                     && System.currentTimeMillis() - this.lastAttackTime.get(killer.getEntityId()) < 5000)
                 return;
-            this.consumer.queueKill(killer, victim);
-            this.lastAttackedEntity.put(killer.getEntityId(), victim.getEntityId());
-            this.lastAttackTime.put(killer.getEntityId(), System.currentTimeMillis());
+            consumer.queueKill(killer, victim);
+            lastAttackedEntity.put(killer.getEntityId(), victim.getEntityId());
+            lastAttackTime.put(killer.getEntityId(), System.currentTimeMillis());
         }
     }
 }
