@@ -49,10 +49,10 @@ public class ChestAccessLogging extends LoggingListener {
     public void checkInventoryOpen(final Player player, final Block block) {
         final BlockState state = block.getState();
         if (state instanceof InventoryHolder) {
-            ItemStack[] compressedInventory = compressInventory(((InventoryHolder) state).getInventory()
-                    .getContents());
-            if (containers.containsValue(compressedInventory)) return;
-            containers.put(player, new ContainerState(block.getLocation(), compressedInventory));
+            ContainerState c = new ContainerState(block.getLocation(),
+                    compressInventory(((InventoryHolder) state).getInventory().getContents()));
+            if (containers.containsValue(c)) return;
+            containers.put(player, c);
         }
     }
 
