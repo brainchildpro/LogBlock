@@ -234,7 +234,7 @@ public class Consumer extends TimerTask {
      * @param after
      *            Blockstate of the block after actually being placed.
      */
-    public void queueBlockReplace(final String playerName, final BlockState before, final BlockState after) {
+    public void queueBlockReplace(String playerName, BlockState before, BlockState after) {
         queueBlockReplace(playerName,
                 new Location(before.getWorld(), before.getX(), before.getY(), before.getZ()),
                 before.getTypeId(), before.getRawData(), after.getTypeId(), after.getRawData());
@@ -244,8 +244,7 @@ public class Consumer extends TimerTask {
      * @param before
      *            Blockstate of the block before actually being destroyed.
      */
-    public void queueBlockReplace(final String playerName, final BlockState before, final int typeAfter,
-            final byte dataAfter) {
+    public void queueBlockReplace(String playerName, BlockState before, int typeAfter, byte dataAfter) {
         queueBlockReplace(playerName,
                 new Location(before.getWorld(), before.getX(), before.getY(), before.getZ()),
                 before.getTypeId(), before.getRawData(), typeAfter, dataAfter);
@@ -255,8 +254,7 @@ public class Consumer extends TimerTask {
      * @param after
      *            Blockstate of the block after actually being placed.
      */
-    public void queueBlockReplace(final String playerName, final int typeBefore, final byte dataBefore,
-            final BlockState after) {
+    public void queueBlockReplace(String playerName, int typeBefore, byte dataBefore, BlockState after) {
         queueBlockReplace(playerName,
                 new Location(after.getWorld(), after.getX(), after.getY(), after.getZ()), typeBefore,
                 dataBefore, after.getTypeId(), after.getRawData());
@@ -264,7 +262,7 @@ public class Consumer extends TimerTask {
 
     public void queueBlockReplace(final String playerName, final Location loc, final int typeBefore,
             final byte dataBefore, final int typeAfter, final byte dataAfter) {
-        if (dataBefore == 0)
+        if (dataBefore == 0 && typeBefore != typeAfter)
             queueBlock(playerName, loc, typeBefore, typeAfter, dataAfter);
         else {
             queueBlockBreak(playerName, loc, typeBefore, dataBefore);
@@ -505,7 +503,6 @@ public class Consumer extends TimerTask {
         getLogger().info("[LogBlock] Dumping queue to files. Queue size " + getQueueSize());
         try {
             writeToFile();
-            getLogger().info("Successfully dumped queue (queue size: " + getQueueSize() + ") \\o/");
         } catch (Exception ex) {
             getLogger().warning("Failed to write. Given up :(");
         }

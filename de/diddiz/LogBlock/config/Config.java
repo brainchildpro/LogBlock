@@ -118,6 +118,7 @@ public class Config {
         def.put("tools.tool.rightClickBehavior", "TOOL");
         def.put("tools.tool.defaultEnabled", true);
         def.put("tools.tool.item", 270);
+        def.put("tools.tool.canDrop", false);
         def.put("tools.tool.params", "area 0 all sum none limit 15 desc silent");
         def.put("tools.tool.mode", "LOOKUP");
         def.put("tools.tool.permissionDefault", "TRUE");
@@ -126,6 +127,7 @@ public class Config {
         def.put("tools.toolblock.rightClickBehavior", "BLOCK");
         def.put("tools.toolblock.defaultEnabled", true);
         def.put("tools.toolblock.item", 7);
+        def.put("tools.toolblock.canDrop", false);
         def.put("tools.toolblock.params", "area 0 all sum none limit 15 desc silent");
         def.put("tools.toolblock.mode", "LOOKUP");
         def.put("tools.toolblock.permissionDefault", "TRUE");
@@ -192,6 +194,7 @@ public class Config {
                         "rightClickBehavior").toUpperCase());
                 final boolean defaultEnabled = tSec.getBoolean("defaultEnabled", false);
                 final int item = tSec.getInt("item", 0);
+                final boolean canDrop = tSec.getBoolean("canDrop", false);
                 final QueryParams params = new QueryParams(logblock);
                 params.prepareToolQuery = true;
                 params.parseArgs(getConsoleSender(), Arrays.asList(tSec.getString("params").split(" ")));
@@ -199,7 +202,7 @@ public class Config {
                 final PermissionDefault pdef = PermissionDefault.valueOf(tSec.getString("permissionDefault")
                         .toUpperCase());
                 tools.add(new Tool(toolName, aliases, leftClickBehavior, rightClickBehavior, defaultEnabled,
-                        item, params, mode, pdef));
+                        item, canDrop, params, mode, pdef));
             } catch (final Exception ex) {
                 getLogger().log(Level.WARNING, "Error at parsing tool '" + toolName + "': ", ex);
             }

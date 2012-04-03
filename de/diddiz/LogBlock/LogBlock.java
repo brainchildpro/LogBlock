@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.logging.Level;
 
 import org.bukkit.*;
-import org.bukkit.command.*;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginManager;
@@ -40,7 +40,7 @@ public class LogBlock extends JavaPlugin {
 
     private final Vector<Question> questions = new Vector<Question>();
 
-    private boolean errorAtLoading = false, noDb = false, connected = true;
+    private boolean errorAtLoading = false, connected = true;
 
     public String ask(final Player respondent, final String questionMessage, final String... answers) {
         final Question question = new Question(respondent, questionMessage, answers);
@@ -50,9 +50,8 @@ public class LogBlock extends JavaPlugin {
 
     /**
      * @param params
-     *            QueryParams that contains the needed columns (all other will
-     *            be filled with default values) and the params. World is
-     *            required.
+     *            QueryParams that contains the needed columns (all other will be filled with default values) and the
+     *            params. World is required.
      */
     public List<BlockChange> getBlockChanges(final QueryParams params) throws SQLException {
         final Connection conn = getConnection();
@@ -75,6 +74,11 @@ public class LogBlock extends JavaPlugin {
         return commandsHandler;
     }
 
+    /**
+     * Gets the MySQL connection
+     * 
+     * @return Connection
+     */
     public Connection getConnection() {
         try {
             final Connection conn = pool.getConnection();
@@ -87,8 +91,7 @@ public class LogBlock extends JavaPlugin {
             if (connected) {
                 getLogger().log(Level.SEVERE, "Error while fetching connection :( ", ex);
                 connected = false;
-            } else getLogger()
-                    .severe("MySQL connection lost! I'm spamming this until you fix the damn MySQL server, deal with it!");
+            } else getLogger().severe("MySQL connection lost!");
             return null;
         }
     }
@@ -121,15 +124,6 @@ public class LogBlock extends JavaPlugin {
     }
 
     @Override
-    public boolean onCommand(final CommandSender sender, final Command cmd, final String commandLabel,
-            final String[] args) {
-        if (noDb)
-            sender.sendMessage(ChatColor.RED
-                    + "No database connected. Check your MySQL user/pw and database for typos. Start/restart your MySQL server.");
-        return true;
-    }
-
-    @Override
     public void onDisable() {
         if (timer != null) timer.cancel();
         getServer().getScheduler().cancelTasks(this);
@@ -138,12 +132,12 @@ public class LogBlock extends JavaPlugin {
                 for (final Player player : getServer().getOnlinePlayers())
                     consumer.queueLeave(player);
             if (consumer.getQueueSize() > 0) {
-                getLogger().info("[LogBlock] Waiting for consumer ...");
+                getLogger().info("Waiting for consumer ...");
                 int tries = 10;
                 while (consumer.getQueueSize() > 0) {
-                    getLogger().info("[LogBlock] Remaining queue size: " + consumer.getQueueSize());
+                    getLogger().info("Remaining queue size: " + consumer.getQueueSize());
                     if (tries > 0)
-                        getLogger().info("[LogBlock] Remaining tries: " + tries);
+                        getLogger().info("Remaining tries: " + tries);
                     else {
                         getServer().savePlayers();
                         for (World w : getServer().getWorlds())
@@ -177,13 +171,12 @@ public class LogBlock extends JavaPlugin {
             pm.disablePlugin(this);
             return;
         }
-        if (noDb) return;
         if (pm.getPlugin("WorldEdit") == null && !new File("lib/WorldEdit.jar").exists()
                 && !new File("WorldEdit.jar").exists())
             try {
                 download(getLogger(), new URL("http://diddiz.insane-architects.net/download/WorldEdit.jar"),
                         new File("lib/WorldEdit.jar"));
-                getLogger().info("You've to restart/reload your server now.");
+                getLogger().info("You have to restart/reload your server now.");
                 pm.disablePlugin(this);
                 return;
             } catch (final Exception ex) {
@@ -191,8 +184,7 @@ public class LogBlock extends JavaPlugin {
                         .warning(
                                 "Failed to download WorldEdit. You may have to download it manually. You don't have to install it, just place the jar in the lib folder.");
             }
-        commandsHandler = new CommandsHandler(this);
-        getCommand("lb").setExecutor(commandsHandler);
+        getCommand("lb").setExecutor(commandsHandler = new CommandsHandler(this)); // Completely valid
         if (pm.getPlugin("Permissions") != null) {
             permissions = ((Permissions) pm.getPlugin("Permissions")).getHandler();
             getLogger().info("Permissions plugin found.");
@@ -206,26 +198,18 @@ public class LogBlock extends JavaPlugin {
             if (getServer().getScheduler().scheduleAsyncRepeatingTask(this, consumer, delayBetweenRuns * 20,
                     delayBetweenRuns * 20) > 0)
                 getLogger().info("Scheduled consumer with bukkit scheduler.");
-            else {
-                getLogger()
-                        .warning(
-                                "Failed to schedule consumer with bukkit scheduler. Now trying schedule with timer.");
-                scheduleTimer();
-            }
+            else scheduleTimer();
         } else {
             scheduleTimer();
             getLogger().info("Scheduled consumer with timer.");
         }
         for (final Tool tool : toolsByType.values())
-            if (pm.getPermission("logblock.tools." + tool.name) == null) {
-                final Permission perm = new Permission("logblock.tools." + tool.name, tool.permissionDefault);
-                pm.addPermission(perm);
-            }
-        // perm.addParent("logblock.*", true);
+            if (pm.getPermission("logblock.tools." + tool.name) == null)
+                pm.addPermission(new Permission("logblock.tools." + tool.name, tool.permissionDefault));
         getServer().getPluginManager().registerEvents(new LogBlockQuestionerPlayerListener(questions), this);
         getServer().getScheduler().scheduleSyncRepeatingTask(this, new QuestionsReaper(questions), 15000,
                 15000);
-        getLogger().info("LogBlock v" + getDescription().getVersion() + " by DiddiZ enabled.");
+        getLogger().info("LogBlock v" + getDescription().getVersion() + " by Ruan enabled.");
     }
 
     @Override
@@ -234,28 +218,38 @@ public class LogBlock extends JavaPlugin {
         try {
             updater = new Updater(this);
             Config.load(this);
-            getLogger().info("[LogBlock] Connecting to " + user + "@" + url + "...");
+            getLogger().info("Connecting to " + user + "@" + url + "...");
             pool = new MySQLConnectionPool(url, user, password);
             final Connection conn = getConnection();
-            if (conn == null) {
-                noDb = true;
-                return;
-            }
+            if (conn == null) return;
             conn.close();
             if (updater.update()) load(this);
             updater.checkTables();
         } catch (final NullPointerException ex) {
-            getLogger().log(Level.SEVERE, "[LogBlock] Error while loading: ", ex);
+            getLogger().log(Level.SEVERE, "Error while loading: ", ex);
         } catch (final Exception ex) {
-            getLogger().severe("[LogBlock] Error while loading: " + ex.getMessage());
+            getLogger().severe("Error while loading: " + ex.getMessage());
             errorAtLoading = true;
             return;
         }
         consumer = new Consumer(this);
     }
 
-    public void reload() {
-        // TODO
+    public void sendPlayerConnectionLost(CommandSender sender) {
+        if (sender.isOp() || sender.hasPermission("logblock.*"))
+            sender.sendMessage(ChatColor.RED
+                    + "MySQL connection lost; please check if the MySQL server is up or try again later.");
+        else sender
+                .sendMessage(ChatColor.RED
+                        + "The server handling the database is currently experiencing issues. Please try again later. (LogBlock will still log data, don't worry)");
+    }
+
+    public void sendPlayerException(CommandSender sender, Exception e) {
+        if (sender.isOp() || sender.hasPermission("logblock.*"))
+            sender.sendMessage(ChatColor.RED + "An error has occurred. Please check the console.");
+        else sender.sendMessage(ChatColor.RED
+                + "An error has occurred. Please ask an administrator to check the console.");
+        e.printStackTrace();
     }
 
     Updater getUpdater() {

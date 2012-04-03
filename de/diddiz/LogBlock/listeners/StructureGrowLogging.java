@@ -18,14 +18,9 @@ public class StructureGrowLogging extends LoggingListener {
     public void onStructureGrow(final StructureGrowEvent event) {
         final WorldConfig wcfg = getWorldConfig(event.getWorld());
         if (wcfg == null) return;
-        final String playerName;
-        if (event.getPlayer() != null) {
-            if (!wcfg.isLogging(Logging.BONEMEALSTRUCTUREGROW)) return;
+        String playerName = "NaturalGrow";
+        if (event.getPlayer() != null && wcfg.isLogging(Logging.BONEMEALSTRUCTUREGROW))
             playerName = event.getPlayer().getName();
-        } else {
-            if (!wcfg.isLogging(Logging.NATURALSTRUCTUREGROW)) return;
-            playerName = "NaturalGrow";
-        }
         for (final BlockState state : event.getBlocks())
             consumer.queueBlockReplace(playerName, state.getBlock().getState(), state);
     }

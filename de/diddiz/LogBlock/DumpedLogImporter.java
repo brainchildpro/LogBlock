@@ -24,7 +24,10 @@ public class DumpedLogImporter implements Runnable {
             Connection conn = null;
             try {
                 conn = this.logblock.getConnection();
-                if (conn == null) return;
+                if (conn == null) {
+                    getLogger().warning("MySQL connection lost. Importing on next restart.");
+                    return;
+                }
                 conn.setAutoCommit(false);
                 final Statement st = conn.createStatement();
                 final BufferedWriter writer = new BufferedWriter(new FileWriter(new File(

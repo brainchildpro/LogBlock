@@ -28,7 +28,7 @@ public class ToolListener implements Listener {
         this.handler = logblock.getCommandsHandler();
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerChangedWorld(final PlayerChangedWorldEvent event) {
         final Player p = event.getPlayer();
         if (hasSession(p)) {
@@ -45,8 +45,27 @@ public class ToolListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onPlayerInteract(final PlayerInteractEvent event) {
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPlayerDropItem(PlayerDropItemEvent event) {
+        final Player p = event.getPlayer();
+        if (p.isOp() || p.hasPermission("lb.droptools")) return;
+        if (hasSession(p)) {
+            final Session session = getSession(p);
+            for (final Entry<Tool, ToolData> entry : session.toolData.entrySet()) {
+                final Tool tool = entry.getKey();
+                final ToolData toolData = entry.getValue();
+                final int item = event.getItemDrop().getItemStack().getTypeId();
+
+                if (item == tool.item && toolData.enabled && !tool.canDrop) {
+                    p.sendMessage(ChatColor.RED + "You cannot drop this tool.");
+                    event.setCancelled(true);
+                }
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getMaterial() != null) {
             final Action action = event.getAction();
             final int type = event.getMaterial().getId();
@@ -86,7 +105,10 @@ public class ToolListener implements Listener {
                             this.handler.new CommandWriteLogFile(player, params, true);
                         else this.handler.new CommandLookup(player, params, true);
                     } catch (final Exception ex) {
-                        player.sendMessage(ChatColor.RED + ex.getMessage());
+                        //player.sendMessage(ChatColor.RED + ex.getMessage());
+                        // Really? You expect the player to know what the exception means?
+                        // As if they even know Java? The chances of that....
+                        logblock.sendPlayerException(player, ex);
                     }
                     event.setCancelled(true);
                 }

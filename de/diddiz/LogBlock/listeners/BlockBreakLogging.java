@@ -45,7 +45,6 @@ public class BlockBreakLogging extends LoggingListener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerInteract(final PlayerInteractEvent event) {
-        if(!event.hasBlock()) return;
         if(event.getMaterial() != Material.FIRE) return;
         if(event.getAction() != Action.LEFT_CLICK_BLOCK) return;
         
