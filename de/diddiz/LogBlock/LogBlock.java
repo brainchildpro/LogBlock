@@ -37,6 +37,7 @@ public class LogBlock extends JavaPlugin {
     private Updater updater = null;
     private Timer timer = null;
     private PermissionHandler permissions = null;
+    private long connectionLostThrottle = System.currentTimeMillis();
 
     private final Vector<Question> questions = new Vector<Question>();
 
@@ -80,6 +81,7 @@ public class LogBlock extends JavaPlugin {
      * @return Connection
      */
     public Connection getConnection() {
+        long time = System.currentTimeMillis();
         try {
             final Connection conn = pool.getConnection();
             if (!connected) {
@@ -91,7 +93,11 @@ public class LogBlock extends JavaPlugin {
             if (connected) {
                 getLogger().log(Level.SEVERE, "Error while fetching connection :( ", ex);
                 connected = false;
-            } else getLogger().severe("MySQL connection lost!");
+            } else if(time - connectionLostThrottle > 60000) {
+                connectionLostThrottle = time;
+                getLogger().severe("MySQL connection lost!");
+            }
+
             return null;
         }
     }
@@ -221,7 +227,10 @@ public class LogBlock extends JavaPlugin {
             getLogger().info("Connecting to " + user + "@" + url + "...");
             pool = new MySQLConnectionPool(url, user, password);
             final Connection conn = getConnection();
-            if (conn == null) return;
+            if (conn == null) {
+                consumer = new Consumer(this);
+                return;
+            }
             conn.close();
             if (updater.update()) load(this);
             updater.checkTables();
