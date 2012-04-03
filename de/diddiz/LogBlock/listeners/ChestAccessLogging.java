@@ -46,16 +46,6 @@ public class ChestAccessLogging extends LoggingListener {
         containers.remove(player);
     }
 
-    public void checkInventoryOpen(final Player player, final Block block) {
-        final BlockState state = block.getState();
-        if (state instanceof InventoryHolder) {
-            ContainerState c = new ContainerState(block.getLocation(),
-                    compressInventory(((InventoryHolder) state).getInventory().getContents()));
-            if (containers.containsValue(c)) return;
-            containers.put(player, c);
-        }
-    }
-
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerChat(final PlayerChatEvent event) {
         checkInventoryClose(event.getPlayer());
@@ -73,8 +63,23 @@ public class ChestAccessLogging extends LoggingListener {
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK && isLogging(p.getWorld(), Logging.CHESTACCESS)) {
             final Block block = event.getClickedBlock();
             final int type = block.getTypeId();
-            if (type == 23 || type == 54 || type == 61 || type == 62 || type == 117)
-                checkInventoryOpen(p, block);
+            if (type == 23 || type == 54 || type == 61 || type == 62 || type == 117) {
+                final BlockState state = block.getState();
+                if (state instanceof InventoryHolder) {
+                    ContainerState c = new ContainerState(block.getLocation(),
+                            compressInventory(((InventoryHolder) state).getInventory().getContents()));
+                    for (Player cs : containers.keySet())
+                        if (containers.get(cs).loc.distance(c.loc) == 0) {
+                            // someone else is accessing the container. let's gamble about it
+                            int chosen = new Random().nextInt(3);
+                            if (chosen == 1)
+                                return; // log as the first player only
+                            else containers.remove(cs); // log as the second player only(higher chance)
+                        }
+
+                    containers.put(p, c);
+                }
+            }
             // dispenser || chest || furnace || furnace || brewing stand
         }
     }

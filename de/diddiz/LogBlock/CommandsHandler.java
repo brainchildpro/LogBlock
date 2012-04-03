@@ -759,7 +759,7 @@ public class CommandsHandler implements CommandExecutor {
                     if (this.logblock.hasPermission(s, "logblock.rollback"))
                         new CommandSaveQueue(s, null, true);
                     else noPerms(s);
-                } else if (cmd.equals("savequeue")) {
+                } else if (cmd.equals("ssq")) {
                     if(this.logblock.hasPermission(s,  "logblock.rollback"))
                         new CommandSilentSaveQueue(s, null, false);
                     else noPerms(s);
