@@ -48,9 +48,12 @@ public class ChestAccessLogging extends LoggingListener {
 
     public void checkInventoryOpen(final Player player, final Block block) {
         final BlockState state = block.getState();
-        if (state instanceof InventoryHolder)
-            containers.put(player, new ContainerState(block.getLocation(),
-                    compressInventory(((InventoryHolder) state).getInventory().getContents())));
+        if (state instanceof InventoryHolder) {
+            ItemStack[] compressedInventory = compressInventory(((InventoryHolder) state).getInventory()
+                    .getContents());
+            if (containers.containsValue(compressedInventory)) return;
+            containers.put(player, new ContainerState(block.getLocation(), compressedInventory));
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -67,11 +70,12 @@ public class ChestAccessLogging extends LoggingListener {
     public void onPlayerInteract(final PlayerInteractEvent event) {
         final Player p = event.getPlayer();
         checkInventoryClose(p);
-        if (event.getAction() == Action.RIGHT_CLICK_BLOCK
-                && isLogging(p.getWorld(), Logging.CHESTACCESS)) {
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK && isLogging(p.getWorld(), Logging.CHESTACCESS)) {
             final Block block = event.getClickedBlock();
             final int type = block.getTypeId();
-            if (type == 23 || type == 54 || type == 61 || type == 62) checkInventoryOpen(p, block);
+            if (type == 23 || type == 54 || type == 61 || type == 62 || type == 117)
+                checkInventoryOpen(p, block);
+            // dispenser || chest || furnace || furnace || brewing stand
         }
     }
 
