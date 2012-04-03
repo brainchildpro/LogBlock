@@ -1,96 +1,111 @@
 package de.diddiz.LogBlock.listeners;
 
-import static de.diddiz.LogBlock.config.Config.isLogging;
-import static de.diddiz.util.BukkitUtils.*;
+import static de.diddiz.util.BukkitUtils.rawData;
 
 import java.util.*;
 
-import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.*;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
+import org.bukkit.event.Event.Result;
 import org.bukkit.event.*;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.*;
+import org.bukkit.event.inventory.*;
 import org.bukkit.inventory.*;
 
-import de.diddiz.LogBlock.*;
+import de.diddiz.LogBlock.LogBlock;
 
 public class ChestAccessLogging extends LoggingListener {
-    private static class ContainerState {
-        public final ItemStack[] items;
-        public final Location loc;
 
-        ContainerState(final Location loc, final ItemStack[] items) {
-            this.items = items;
-            this.loc = loc;
-        }
-    }
+    private LogBlock lb;
 
-    private final Map<Player, ContainerState> containers = new HashMap<Player, ContainerState>();
+    private final Map<String, Boolean> heldItem = new HashMap<String, Boolean>();
+    private final Map<String, Integer> clickedItem = new HashMap<String, Integer>();
 
     public ChestAccessLogging(final LogBlock lb) {
         super(lb);
-    }
-
-    public void checkInventoryClose(final Player player) {
-        final ContainerState cont = this.containers.get(player);
-        if (cont == null) return;
-        final ItemStack[] before = cont.items;
-        final BlockState state = cont.loc.getBlock().getState();
-        if (!(state instanceof InventoryHolder)) return;
-        final ItemStack[] after = compressInventory(((InventoryHolder) state).getInventory().getContents());
-        final ItemStack[] diff = compareInventories(before, after);
-        for (final ItemStack item : diff)
-            consumer.queueChestAccess(player.getName(), cont.loc, state.getTypeId(),
-                    (short) item.getTypeId(), (short) item.getAmount(), rawData(item));
-        containers.remove(player);
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerChat(final PlayerChatEvent event) {
-        checkInventoryClose(event.getPlayer());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerCommandPreprocess(final PlayerCommandPreprocessEvent event) {
-        checkInventoryClose(event.getPlayer());
+        this.lb = lb;
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onPlayerInteract(final PlayerInteractEvent event) {
-        final Player p = event.getPlayer();
-        checkInventoryClose(p);
-        if (event.getAction() == Action.RIGHT_CLICK_BLOCK && isLogging(p.getWorld(), Logging.CHESTACCESS)) {
-            final Block block = event.getClickedBlock();
-            final int type = block.getTypeId();
-            if (type == 23 || type == 54 || type == 61 || type == 62 || type == 117) {
-                final BlockState state = block.getState();
-                if (state instanceof InventoryHolder) {
-                    ContainerState c = new ContainerState(block.getLocation(),
-                            compressInventory(((InventoryHolder) state).getInventory().getContents()));
-                    for (Player cs : containers.keySet())
-                        if (containers.get(cs).loc.distance(c.loc) == 0) {
-                            // someone else is accessing the container. let's gamble about it
-                            int chosen = new Random().nextInt(3);
-                            if (chosen == 1)
-                                return; // log as the first player only
-                            else containers.remove(cs); // log as the second player only(higher chance)
-                        }
-
-                    containers.put(p, c);
-                }
+    public void onInventoryClick(InventoryClickEvent e) {
+        if (e.getResult() == Result.DENY) return;
+        final HumanEntity en = e.getWhoClicked();
+        if (!(en instanceof Player)) return;
+        Player p = (Player) en;
+        final int slotClicked = e.getRawSlot();
+        InventoryType type = e.getInventory().getType();
+        ItemStack item = e.getCursor();
+        if (type == InventoryType.PLAYER || type == InventoryType.CREATIVE
+                || type == InventoryType.WORKBENCH || type == InventoryType.ENCHANTING
+                || type == InventoryType.CRAFTING) return;
+        final InventoryHolder h = e.getInventory().getHolder();
+        Block b = null;
+        boolean unknown = false;
+        final int containerSlots;
+        if (type == InventoryType.CHEST) {
+            if (h instanceof Chest) {
+                b = ((Chest) h).getBlock();
+                containerSlots = 26;
+            } else {
+                b = ((Chest) ((DoubleChest) h).getLeftSide()).getBlock();
+                containerSlots = 53;
             }
-            // dispenser || chest || furnace || furnace || brewing stand
+        } else if (type == InventoryType.BREWING) {
+            b = ((BrewingStand) h).getBlock();
+            containerSlots = 3;
+            if (item != null && item.getType() != Material.POTION) return;
+        } else if (type == InventoryType.DISPENSER) {
+            b = ((Dispenser) h).getBlock();
+            containerSlots = 8;
+        } else if (type == InventoryType.FURNACE) {
+            b = ((Furnace) h).getBlock();
+            if (slotClicked == 2) return; // cannot place in that slot
+            containerSlots = 2;
+        } else {
+            unknown = true;
+            return;
         }
+
+        if (b == null || unknown) {
+            lb.getLogger()
+                    .warning(
+                            "New container type detected; please update LogBlock to have support for logging this container.");
+            return;
+        }
+        if (item == null || item.getTypeId() == 0) { // WAT or just air
+            heldItem.put(p.getName(), !(slotClicked > containerSlots)); // true = clicked inside container
+            clickedItem.put(p.getName(), slotClicked); // they picked it up
+            return;
+        }
+        Integer clickeditem = clickedItem.get(p.getName());
+        if (clickeditem != null) // should always be true but stuff can happen
+            if (clickeditem > containerSlots && slotClicked > containerSlots || clickeditem < containerSlots
+                    && slotClicked < containerSlots) return; // clicking in same inventory
+        final BlockState state = b.getState();
+        Boolean cocw = heldItem.get(p.getName());
+
+        boolean nodata = cocw == null;
+        boolean clickedOutsideChestWindow;
+
+        if (!nodata) {
+            clickedOutsideChestWindow = cocw;
+            heldItem.remove(p.getName());
+        } else clickedOutsideChestWindow = false;
+
+        if (slotClicked == -999 && !clickedOutsideChestWindow) return;
+        if (slotClicked > containerSlots || slotClicked == -999)
+            // outside the container's window
+            consumer.queueChestAccess(p.getName(), b.getLocation(), state.getTypeId(),
+                    (short) item.getTypeId(), (short) (item.getAmount() * -1), rawData(item));
+        else // inside the container's window
+        consumer.queueChestAccess(p.getName(), b.getLocation(), state.getTypeId(), (short) item.getTypeId(),
+                (short) item.getAmount(), rawData(item));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerQuit(final PlayerQuitEvent event) {
-        checkInventoryClose(event.getPlayer());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerTeleport(final PlayerTeleportEvent event) {
-        checkInventoryClose(event.getPlayer());
+    public void onInventoryClose(InventoryCloseEvent e) {
+        String p = e.getPlayer().getName();
+        heldItem.remove(p);
+        clickedItem.remove(p);
     }
 }

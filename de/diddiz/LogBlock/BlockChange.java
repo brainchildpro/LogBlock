@@ -56,6 +56,8 @@ public class BlockChange implements LookupCacheElement {
 
     @Override
     public String toString() {
+        if ((this.type == 23 || this.type == 54 || this.type == 61 || this.type == 62 || this.type == 117)
+                && this.ca == null && this.replaced != 0) return "";
         final StringBuilder msg = new StringBuilder();
         if (this.date > 0) msg.append(formatter.format(this.date) + " ");
         if (this.playerName != null) msg.append(this.playerName + " ");
@@ -76,9 +78,7 @@ public class BlockChange implements LookupCacheElement {
                             + materialName(this.ca.itemType, this.ca.itemData));
                 else msg.append("put in " + this.ca.itemAmount + "x "
                         + materialName(this.ca.itemType, this.ca.itemData));
-            } else if (this.type == 23 || this.type == 54 || this.type == 61 || this.type == 62)
-                msg.append("opened " + materialName(this.type));
-            else if (this.type == 64 || this.type == 71 || this.type == 96 || this.type == 107)
+            } else if (this.type == 64 || this.type == 71 || this.type == 96 || this.type == 107)
                 msg.append((this.data == 0 ? "opened" : "closed") + " " + materialName(this.type));
             else if (this.type == 69)
                 msg.append("switched " + materialName(this.type));

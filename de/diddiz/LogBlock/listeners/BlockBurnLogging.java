@@ -16,7 +16,6 @@ public class BlockBurnLogging extends LoggingListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBurn(final BlockBurnEvent event) {
         Block b = event.getBlock();
-        if (isLogging(b.getWorld(), Logging.FIRE))
-            this.consumer.queueBlockBreak("Fire", b.getState());
+        if (isLogging(b.getWorld(), Logging.FIRE)) this.consumer.queueBlockBreak("Fire", b.getState());
     }
 }

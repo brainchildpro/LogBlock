@@ -17,15 +17,13 @@ public class ChatLogging extends LoggingListener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerChat(final PlayerChatEvent event) {
         Player p = event.getPlayer();
-        if (isLogging(p.getWorld(), Logging.CHAT))
-            this.consumer.queueChat(p.getName(), event.getMessage());
+        if (isLogging(p.getWorld(), Logging.CHAT)) this.consumer.queueChat(p.getName(), event.getMessage());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerCommandPreprocess(final PlayerCommandPreprocessEvent event) {
         Player p = event.getPlayer();
-        if (isLogging(p.getWorld(), Logging.CHAT))
-            this.consumer.queueChat(p.getName(), event.getMessage());
+        if (isLogging(p.getWorld(), Logging.CHAT)) this.consumer.queueChat(p.getName(), event.getMessage());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

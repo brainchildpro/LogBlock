@@ -181,8 +181,8 @@ public class Consumer extends TimerTask {
     }
 
     /**
-     * Logs any block change. Don't try to combine broken and placed blocks.
-     * Queue two block changes or use the queueBLockReplace methods.
+     * Logs any block change. Don't try to combine broken and placed blocks. Queue two block changes or use the
+     * queueBLockReplace methods.
      */
     public void queueBlock(final String playerName, final Location loc, final int typeBefore,
             final int typeAfter, final byte data) {
@@ -276,8 +276,7 @@ public class Consumer extends TimerTask {
 
     /**
      * @param container
-     *            The respective container. Must be an instance of Chest,
-     *            Dispencer or Furnace.
+     *            The respective container. Must be an instance of Chest, Dispencer or Furnace.
      */
     public void queueChestAccess(final String playerName, final BlockState container, final short itemType,
             final short itemAmount, final byte itemData) {
@@ -297,22 +296,19 @@ public class Consumer extends TimerTask {
     }
 
     /**
-     * Logs a container block break. The block type before is assumed to be o
-     * (air). All content is assumed to be taken.
+     * Logs a container block break. The block type before is assumed to be o (air). All content is assumed to be taken.
      * 
      * @param container
      *            Must be instanceof InventoryHolder
      */
     public void queueContainerBreak(final String playerName, final BlockState container) {
         if (!(container instanceof InventoryHolder)) return;
-        queueContainerBreak(playerName,
-                new Location(container.getWorld(), container.getX(), container.getY(), container.getZ()),
-                container.getTypeId(), container.getRawData(), ((InventoryHolder) container).getInventory());
+        queueContainerBreak(playerName, container.getLocation(), container.getTypeId(),
+                container.getRawData(), ((InventoryHolder) container).getInventory());
     }
 
     /**
-     * Logs a container block break. The block type before is assumed to be o
-     * (air). All content is assumed to be taken.
+     * Logs a container block break. The block type before is assumed to be o (air). All content is assumed to be taken.
      */
     public void queueContainerBreak(final String playerName, final Location loc, final int type,
             final byte data, final Inventory inv) {

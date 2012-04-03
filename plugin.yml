@@ -1,9 +1,9 @@
 name: LogBlock
 version: '1.53'
-author: DiddiZ
-website: http://www.diddiz.de/minecraft/
+author: Ruan
+website: http://github.com/ruan942/LogBlock
 main: de.diddiz.LogBlock.LogBlock
-description: Logs blocks.
+description: Logs blocks. Properly.
 softdepend: [Permissions, WorldEdit]
 commands:
   lb:

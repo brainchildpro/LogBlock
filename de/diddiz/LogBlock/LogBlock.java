@@ -93,7 +93,7 @@ public class LogBlock extends JavaPlugin {
             if (connected) {
                 getLogger().log(Level.SEVERE, "Error while fetching connection :( ", ex);
                 connected = false;
-            } else if(time - connectionLostThrottle > 60000) {
+            } else if (time - connectionLostThrottle > 60000) {
                 connectionLostThrottle = time;
                 getLogger().severe("MySQL connection lost!");
             }

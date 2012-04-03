@@ -45,12 +45,11 @@ public class BlockBreakLogging extends LoggingListener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerInteract(final PlayerInteractEvent event) {
-        if(event.getMaterial() != Material.FIRE) return;
-        if(event.getAction() != Action.LEFT_CLICK_BLOCK) return;
-        
+        if (event.getMaterial() != Material.FIRE) return;
+        if (event.getAction() != Action.LEFT_CLICK_BLOCK) return;
+
         final Player p = event.getPlayer();
-        if (isLogging(p.getWorld(), Logging.BLOCKBREAK)) {
+        if (isLogging(p.getWorld(), Logging.BLOCKBREAK))
             consumer.queueBlockBreak(p.getName(), event.getClickedBlock().getState());
-        }
     }
 }

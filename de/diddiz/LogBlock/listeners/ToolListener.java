@@ -105,7 +105,7 @@ public class ToolListener implements Listener {
                             this.handler.new CommandWriteLogFile(player, params, true);
                         else this.handler.new CommandLookup(player, params, true);
                     } catch (final Exception ex) {
-                        //player.sendMessage(ChatColor.RED + ex.getMessage());
+                        // player.sendMessage(ChatColor.RED + ex.getMessage());
                         // Really? You expect the player to know what the exception means?
                         // As if they even know Java? The chances of that....
                         logblock.sendPlayerException(player, ex);

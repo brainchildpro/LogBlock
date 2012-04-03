@@ -18,11 +18,11 @@ public class InteractLogging extends LoggingListener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerInteract(final PlayerInteractEvent event) {
-        final WorldConfig wcfg = getWorldConfig(event.getPlayer().getWorld());
+        final Player p = event.getPlayer();
+        final WorldConfig wcfg = getWorldConfig(p.getWorld());
         if (wcfg != null
                 && (event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_BLOCK)) {
             final int type = event.getClickedBlock().getTypeId();
-            final Player p = event.getPlayer();
             final String name = p.getName();
             final Location loc = event.getClickedBlock().getLocation();
             switch (type) {
@@ -37,8 +37,8 @@ public class InteractLogging extends LoggingListener {
             case 64:
             case 96:
                 if (wcfg.isLogging(Logging.DOORINTERACT))
-                    consumer.queueBlock(name, loc, type, type, (byte) ((event.getClickedBlock()
-                            .getData() & 4) / 4));
+                    consumer.queueBlock(name, loc, type, type,
+                            (byte) ((event.getClickedBlock().getData() & 4) / 4));
                 break;
             case 92:
                 if (wcfg.isLogging(Logging.CAKEEAT) && p.getFoodLevel() < 20)

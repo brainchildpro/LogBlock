@@ -66,11 +66,11 @@ public class CommandsHandler implements CommandExecutor {
         public void run() {
             try {
                 conn = CommandsHandler.this.logblock.getConnection();
-                this.state = conn.createStatement();
                 if (conn == null) {
                     logblock.sendPlayerConnectionLost(this.sender);
                     return;
                 }
+                this.state = conn.createStatement();
                 if (!checkRestrictions(this.sender, this.params)) return;
                 final File dumpFolder = new File(CommandsHandler.this.logblock.getDataFolder(), "dump");
                 if (!dumpFolder.exists()) dumpFolder.mkdirs();
@@ -599,12 +599,21 @@ public class CommandsHandler implements CommandExecutor {
         this.scheduler = logblock.getServer().getScheduler();
     }
 
+    public void noPerms(CommandSender s) {
+        s.sendMessage(ChatColor.RED + "You aren't allowed to do this.");
+    }
+
+    public void notPlayer(CommandSender s) {
+        s.sendMessage(ChatColor.RED + "You have to be a player.");
+    }
+
     @Override
     public boolean onCommand(CommandSender s, Command c, String cL, String[] args) {
         try {
             if (args.length == 0) {
                 s.sendMessage(ChatColor.LIGHT_PURPLE + "LogBlock v"
-                        + this.logblock.getDescription().getVersion() + " by DiddiZ");
+                        + this.logblock.getDescription().getVersion() + " by "
+                        + logblock.getDescription().getAuthors().get(0));
                 s.sendMessage(ChatColor.LIGHT_PURPLE + "Type /lb help for help");
             } else {
                 final String cmd = args[0].toLowerCase();
@@ -760,7 +769,7 @@ public class CommandsHandler implements CommandExecutor {
                         new CommandSaveQueue(s, null, true);
                     else noPerms(s);
                 } else if (cmd.equals("ssq")) {
-                    if(this.logblock.hasPermission(s,  "logblock.rollback"))
+                    if (this.logblock.hasPermission(s, "logblock.rollback"))
                         new CommandSilentSaveQueue(s, null, false);
                     else noPerms(s);
                 } else if (cmd.equals("queuesize") || cmd.equals("qs")) {
@@ -873,13 +882,5 @@ public class CommandsHandler implements CommandExecutor {
             return false;
         }
         return true;
-    }
-
-    public void noPerms(CommandSender s) {
-        s.sendMessage(ChatColor.RED + "You aren't allowed to do this.");
-    }
-
-    public void notPlayer(CommandSender s) {
-        s.sendMessage(ChatColor.RED + "You have to be a player.");
     }
 }
