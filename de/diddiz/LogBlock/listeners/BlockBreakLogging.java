@@ -13,6 +13,8 @@ import org.bukkit.event.player.*;
 import de.diddiz.LogBlock.*;
 import de.diddiz.LogBlock.config.WorldConfig;
 
+
+
 public class BlockBreakLogging extends LoggingListener {
     public BlockBreakLogging(final LogBlock lb) {
         super(lb);

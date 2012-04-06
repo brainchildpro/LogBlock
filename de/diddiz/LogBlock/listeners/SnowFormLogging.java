@@ -8,6 +8,8 @@ import org.bukkit.event.block.*;
 
 import de.diddiz.LogBlock.*;
 
+
+
 public class SnowFormLogging extends LoggingListener {
     public SnowFormLogging(final LogBlock lb) {
         super(lb);

@@ -14,6 +14,8 @@ import org.bukkit.inventory.*;
 
 import de.diddiz.LogBlock.LogBlock;
 
+
+
 public class ChestAccessLogging extends LoggingListener {
 
     private LogBlock lb;
@@ -39,6 +41,7 @@ public class ChestAccessLogging extends LoggingListener {
                 || type == InventoryType.WORKBENCH || type == InventoryType.ENCHANTING
                 || type == InventoryType.CRAFTING) return;
         final InventoryHolder h = e.getInventory().getHolder();
+        if(h instanceof Entity) return; // storage minecarts
         Block b = null;
         boolean unknown = false;
         final int containerSlots;

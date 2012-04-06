@@ -11,6 +11,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import de.diddiz.LogBlock.*;
 import de.diddiz.LogBlock.config.WorldConfig;
 
+
+
 public class InteractLogging extends LoggingListener {
     public InteractLogging(final LogBlock lb) {
         super(lb);

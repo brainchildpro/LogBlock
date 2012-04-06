@@ -8,6 +8,8 @@ import org.bukkit.event.block.BlockBurnEvent;
 
 import de.diddiz.LogBlock.*;
 
+
+
 public class BlockBurnLogging extends LoggingListener {
     public BlockBurnLogging(final LogBlock lb) {
         super(lb);

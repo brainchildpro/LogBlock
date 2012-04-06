@@ -9,6 +9,8 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 
 import de.diddiz.LogBlock.*;
 
+
+
 public class EndermenLogging extends LoggingListener {
     public EndermenLogging(final LogBlock lb) {
         super(lb);

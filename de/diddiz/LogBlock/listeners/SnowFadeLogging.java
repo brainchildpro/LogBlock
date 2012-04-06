@@ -8,6 +8,8 @@ import org.bukkit.event.block.BlockFadeEvent;
 
 import de.diddiz.LogBlock.*;
 
+
+
 public class SnowFadeLogging extends LoggingListener {
     public SnowFadeLogging(final LogBlock lb) {
         super(lb);

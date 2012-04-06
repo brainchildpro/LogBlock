@@ -9,6 +9,8 @@ import org.bukkit.event.world.StructureGrowEvent;
 import de.diddiz.LogBlock.*;
 import de.diddiz.LogBlock.config.WorldConfig;
 
+
+
 public class StructureGrowLogging extends LoggingListener {
     public StructureGrowLogging(final LogBlock lb) {
         super(lb);

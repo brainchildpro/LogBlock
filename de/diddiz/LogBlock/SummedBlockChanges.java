@@ -9,6 +9,8 @@ import org.bukkit.Location;
 
 import de.diddiz.LogBlock.QueryParams.SummarizationMode;
 
+
+
 public class SummedBlockChanges implements LookupCacheElement {
     private final String group;
     private final int created, destroyed;

@@ -11,6 +11,8 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import de.diddiz.LogBlock.*;
 import de.diddiz.LogBlock.config.WorldConfig;
 
+
+
 public class ExplosionLogging extends LoggingListener {
     public ExplosionLogging(final LogBlock lb) {
         super(lb);

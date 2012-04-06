@@ -21,10 +21,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
 
-import de.diddiz.LogBlock.QueryParams.BlockChangeType;
-import de.diddiz.LogBlock.QueryParams.Order;
-import de.diddiz.LogBlock.QueryParams.SummarizationMode;
+import de.diddiz.LogBlock.QueryParams.*;
 import de.diddiz.LogBlock.config.*;
+
+
 
 public class CommandsHandler implements CommandExecutor {
     public abstract class AbstractCommand implements Runnable, Closeable {

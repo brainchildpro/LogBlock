@@ -12,6 +12,8 @@ import org.bukkit.event.entity.*;
 import de.diddiz.LogBlock.*;
 import de.diddiz.LogBlock.config.Config.LogKillsLevel;
 
+
+
 public class KillLogging extends LoggingListener {
     private final Map<Integer, Integer> lastAttackedEntity = new HashMap<Integer, Integer>();
     private final Map<Integer, Long> lastAttackTime = new HashMap<Integer, Long>();

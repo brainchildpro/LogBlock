@@ -10,6 +10,8 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 import de.diddiz.LogBlock.*;
 
+
+
 public class BanListener implements Listener {
     final CommandsHandler handler;
     final LogBlock logblock;

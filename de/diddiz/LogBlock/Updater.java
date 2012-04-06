@@ -17,6 +17,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import de.diddiz.LogBlock.config.WorldConfig;
 
+
+
 class Updater {
     private static void createTable(final DatabaseMetaData dbm, final Statement state, final String table,
             final String query) throws SQLException {

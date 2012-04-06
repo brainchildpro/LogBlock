@@ -9,6 +9,8 @@ import org.bukkit.event.block.SignChangeEvent;
 
 import de.diddiz.LogBlock.*;
 
+
+
 public class SignChangeLogging extends LoggingListener {
     public SignChangeLogging(final LogBlock lb) {
         super(lb);

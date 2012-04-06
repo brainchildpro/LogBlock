@@ -8,6 +8,8 @@ import org.bukkit.event.block.LeavesDecayEvent;
 
 import de.diddiz.LogBlock.*;
 
+
+
 public class LeavesDecayLogging extends LoggingListener {
     public LeavesDecayLogging(final LogBlock lb) {
         super(lb);

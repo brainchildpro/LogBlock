@@ -16,6 +16,8 @@ import org.bukkit.permissions.PermissionDefault;
 
 import de.diddiz.LogBlock.*;
 
+
+
 public class Config {
     public static enum LogKillsLevel {
         PLAYERS, MONSTERS, ANIMALS;

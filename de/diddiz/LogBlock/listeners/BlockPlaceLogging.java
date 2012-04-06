@@ -14,6 +14,8 @@ import org.bukkit.material.MaterialData;
 import de.diddiz.LogBlock.*;
 import de.diddiz.LogBlock.config.WorldConfig;
 
+
+
 public class BlockPlaceLogging extends LoggingListener {
     public BlockPlaceLogging(final LogBlock lb) {
         super(lb);

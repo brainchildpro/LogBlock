@@ -8,6 +8,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import de.diddiz.LogBlock.Logging;
 
+
+
 public class WorldConfig extends LoggingEnabledMapping {
     public final String table;
 
