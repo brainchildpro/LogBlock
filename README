@@ -1,4 +1,7 @@
 This is a fork of LogBlock; coded solely by Ruan.
+
+Package name is kept for the sake of other plugins using the API.
+
 Changes from the original LogBlock:
 
 * Add 'DropQueueAfter' setting, which dumps the queue to files if it exceeds a certain size
