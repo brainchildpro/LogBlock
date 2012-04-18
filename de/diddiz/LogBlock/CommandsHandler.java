@@ -21,7 +21,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
 
-import de.diddiz.LogBlock.QueryParams.*;
+import de.diddiz.LogBlock.QueryParams.BlockChangeType;
+import de.diddiz.LogBlock.QueryParams.Order;
+import de.diddiz.LogBlock.QueryParams.SummarizationMode;
 import de.diddiz.LogBlock.config.*;
 
 
@@ -218,9 +220,6 @@ public class CommandsHandler implements CommandExecutor {
                 }
                 conn = CommandsHandler.this.logblock.getConnection();
                 if (conn == null) {
-                    // this.sender.sendMessage(ChatColor.RED +
-                    // "MySQL connection lost");
-                    // Player: WTF IS MYSLQ?! HELP!
                     logblock.sendPlayerConnectionLost(this.sender);
                     return;
                 }
@@ -320,6 +319,7 @@ public class CommandsHandler implements CommandExecutor {
                                 + ChatColor.GREEN : "")
                         + (editor.getBlacklistCollisions() > 0 ? ", " + editor.getBlacklistCollisions()
                                 + " blacklist collisions" : "") + ")");
+                logblock.fileLog.log(this.sender.getName() + " :REDO: " + this.params.getQuery());
             } catch (final Exception ex) {
                 this.sender.sendMessage(ChatColor.RED + "Exception, check error log");
                 getLogger().log(Level.SEVERE, "[LogBlock Redo] " + this.params.getQuery() + ": ", ex);
@@ -392,6 +392,7 @@ public class CommandsHandler implements CommandExecutor {
                                 + ChatColor.GREEN : "")
                         + (editor.getBlacklistCollisions() > 0 ? ", " + editor.getBlacklistCollisions()
                                 + " blacklist collisions" : "") + ")");
+                logblock.fileLog.log(this.sender.getName() + " :ROLLBACK: " + this.params.getQuery());
                 if (!this.params.silent && askClearLogAfterRollback
                         && CommandsHandler.this.logblock.hasPermission(this.sender, "logblock.clearlog")
                         && this.sender instanceof Player) {
@@ -622,7 +623,7 @@ public class CommandsHandler implements CommandExecutor {
                     s.sendMessage(ChatColor.GOLD + "For the commands list type '/lb commands'");
                     s.sendMessage(ChatColor.GOLD + "For the parameters list type '/lb params'");
                     s.sendMessage(ChatColor.GOLD
-                            + "For the list of permissions you got type '/lb permissions'");
+                            + "For the list of permissions you have type '/lb permissions'");
                 } else if (cmd.equals("commands")) {
                     s.sendMessage(ChatColor.DARK_AQUA + "LogBlock Commands:");
                     s.sendMessage(ChatColor.GOLD + "/lb tool -- Gives you the lb tool");

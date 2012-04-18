@@ -20,10 +20,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.nijiko.permissions.PermissionHandler;
 import com.nijikokun.bukkit.Permissions.Permissions;
 
-
 import de.diddiz.LogBlock.config.Config;
 import de.diddiz.LogBlock.listeners.*;
 import de.diddiz.util.MySQLConnectionPool;
+
+import eu.icecraft_mc.rLog.rLog;
 
 public class LogBlock extends JavaPlugin {
     private static LogBlock logblock = null;
@@ -31,6 +32,8 @@ public class LogBlock extends JavaPlugin {
     public static LogBlock getInstance() {
         return logblock;
     }
+    
+    public rLog fileLog = null;
 
     private MySQLConnectionPool pool;
     private Consumer consumer = null;
@@ -134,6 +137,7 @@ public class LogBlock extends JavaPlugin {
     public void onDisable() {
         if (timer != null) timer.cancel();
         getServer().getScheduler().cancelTasks(this);
+        fileLog.uninit();
         if (consumer != null) {
             if (logPlayerInfo && getServer().getOnlinePlayers() != null)
                 for (final Player player : getServer().getOnlinePlayers())
@@ -191,6 +195,8 @@ public class LogBlock extends JavaPlugin {
                         .warning(
                                 "Failed to download WorldEdit. You may have to download it manually. You don't have to install it, just place the jar in the lib folder.");
             }
+        fileLog = new rLog();
+        fileLog.init("plugins/LogBlock", "lb.log", 10);
         getCommand("lb").setExecutor(commandsHandler = new CommandsHandler(this)); // Completely valid
         if (pm.getPlugin("Permissions") != null) {
             permissions = ((Permissions) pm.getPlugin("Permissions")).getHandler();

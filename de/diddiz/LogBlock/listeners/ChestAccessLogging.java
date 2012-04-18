@@ -14,8 +14,6 @@ import org.bukkit.inventory.*;
 
 import de.diddiz.LogBlock.LogBlock;
 
-
-
 public class ChestAccessLogging extends LoggingListener {
 
     private LogBlock lb;
@@ -41,7 +39,7 @@ public class ChestAccessLogging extends LoggingListener {
                 || type == InventoryType.WORKBENCH || type == InventoryType.ENCHANTING
                 || type == InventoryType.CRAFTING) return;
         final InventoryHolder h = e.getInventory().getHolder();
-        if(h instanceof Entity) return; // storage minecarts
+        if (h instanceof Entity) return; // storage minecarts
         Block b = null;
         boolean unknown = false;
         final int containerSlots;
@@ -75,9 +73,9 @@ public class ChestAccessLogging extends LoggingListener {
                             "New container type detected; please update LogBlock to have support for logging this container.");
             return;
         }
-        if (item == null || item.getTypeId() == 0) { // WAT or just air
+        if (item == null || item.getTypeId() == 0) {
             heldItem.put(p.getName(), !(slotClicked > containerSlots)); // true = clicked inside container
-            clickedItem.put(p.getName(), slotClicked); // they picked it up
+            clickedItem.put(p.getName(), new Integer(slotClicked)); // they picked it up
             return;
         }
         Integer clickeditem = clickedItem.get(p.getName());
@@ -96,13 +94,15 @@ public class ChestAccessLogging extends LoggingListener {
         } else clickedOutsideChestWindow = false;
 
         if (slotClicked == -999 && !clickedOutsideChestWindow) return;
+        int amount = item.getAmount();
+        if (e.isRightClick() && !e.isShiftClick()) amount = 1;
         if (slotClicked > containerSlots || slotClicked == -999)
-            // outside the container's window
-            consumer.queueChestAccess(p.getName(), b.getLocation(), state.getTypeId(),
-                    (short) item.getTypeId(), (short) (item.getAmount() * -1), rawData(item));
+        // outside the container's window
+        consumer.queueChestAccess(p.getName(), b.getLocation(), state.getTypeId(), (short) item.getTypeId(),
+                (short) (amount * -1), rawData(item));
         else // inside the container's window
         consumer.queueChestAccess(p.getName(), b.getLocation(), state.getTypeId(), (short) item.getTypeId(),
-                (short) item.getAmount(), rawData(item));
+                (short) amount, rawData(item));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
