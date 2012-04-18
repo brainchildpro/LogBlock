@@ -4,7 +4,9 @@ Package name is kept for the sake of other plugins using the API.
 
 Changes from the original LogBlock:
 
-* Add 'DropQueueAfter' setting, which dumps the queue to files if it exceeds a certain size
+* Merge Questioner into LogBlock; no need for a seperate 'API' which is just a thread that already pauses when asking; no point in having multiple plugins access it
+
+* Add 'DropQueueAfter' setting, which dumps the queue to files if it exceeds a certain size(Was originally killConnectionAfter but killing the connection caused memory leaks, so this came to mind)
 
 * Fixed Chest API; chest logging isn't duplicated and many players can access a chest
   at once without any issues
@@ -26,6 +28,7 @@ Changes from the original LogBlock:
 
 * There is a permission for players to be allowed to drop LogBlock tools. (logblock.dropTools)
 
+* Log rollbacks and redos into 'plugins/LogBlock/lb.log'
 
 Original description:
 
