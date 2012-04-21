@@ -42,6 +42,7 @@ public class Config {
     public static int linesPerPage, linesLimit;
     public static boolean askRollbacks, askRedos, askClearLogs, askClearLogAfterRollback,
             askRollbackAfterBan;
+    public static int lookupMaxArea, lookupMaxTime;
     public static String banPermission;
     public static Set<Integer> hiddenBlocks;
 
@@ -109,6 +110,8 @@ public class Config {
         def.put("lookup.defaultTime", "30 minutes");
         def.put("lookup.linesPerPage", 15);
         def.put("lookup.linesLimit", 1500);
+        def.put("lookup.maxTime", "2 days");
+        def.put("lookup.maxArea", 20);
         def.put("questioner.askRollbacks", true);
         def.put("questioner.askRedos", true);
         def.put("questioner.askClearLogs", true);
@@ -178,6 +181,8 @@ public class Config {
         defaultTime = parseTimeSpec(config.getString("lookup.defaultTime").split(" "));
         linesPerPage = config.getInt("lookup.linesPerPage", 15);
         linesLimit = config.getInt("lookup.linesLimit", 1500);
+        lookupMaxTime = parseTimeSpec(config.getString("lookup.maxTime").split(" "));
+        lookupMaxArea = config.getInt("lookup.maxArea", 20);
         askRollbacks = config.getBoolean("questioner.askRollbacks", true);
         askRedos = config.getBoolean("questioner.askRedos", true);
         askClearLogs = config.getBoolean("questioner.askClearLogs", true);

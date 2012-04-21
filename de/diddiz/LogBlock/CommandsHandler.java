@@ -26,7 +26,7 @@ import de.diddiz.LogBlock.QueryParams.Order;
 import de.diddiz.LogBlock.QueryParams.SummarizationMode;
 import de.diddiz.LogBlock.config.*;
 
-
+import eu.icecraft_mc.rLog.rLog;
 
 public class CommandsHandler implements CommandExecutor {
     public abstract class AbstractCommand implements Runnable, Closeable {
@@ -223,6 +223,19 @@ public class CommandsHandler implements CommandExecutor {
                     logblock.sendPlayerConnectionLost(this.sender);
                     return;
                 }
+
+                if (lookupMaxTime > 0 && (params.before > 0 || params.since > lookupMaxTime)) {
+                    sender.sendMessage(ChatColor.RED + "You are not allowed to lookup more than "
+                            + lookupMaxTime + " minutes.");
+                    return;
+                }
+                if (lookupMaxArea > 0
+                        && (params.sel == null && params.loc == null || params.radius > lookupMaxArea || params.sel != null
+                                && (params.sel.getLength() > lookupMaxArea || params.sel.getWidth() > lookupMaxArea))) {
+                    sender.sendMessage(ChatColor.RED + "You are not allowed to lookup an area larger than "
+                            + lookupMaxArea + " blocks.");
+                    return;
+                }
                 this.state = conn.createStatement();
                 this.rs = this.state.executeQuery(this.params.getQuery());
                 this.sender.sendMessage(ChatColor.DARK_AQUA + this.params.getTitle() + ":");
@@ -319,7 +332,7 @@ public class CommandsHandler implements CommandExecutor {
                                 + ChatColor.GREEN : "")
                         + (editor.getBlacklistCollisions() > 0 ? ", " + editor.getBlacklistCollisions()
                                 + " blacklist collisions" : "") + ")");
-                logblock.fileLog.log(this.sender.getName() + " :REDO: " + this.params.getQuery());
+                rLog.log(this.sender.getName() + " :REDO: " + this.params.getQuery());
             } catch (final Exception ex) {
                 this.sender.sendMessage(ChatColor.RED + "Exception, check error log");
                 getLogger().log(Level.SEVERE, "[LogBlock Redo] " + this.params.getQuery() + ": ", ex);
@@ -392,7 +405,7 @@ public class CommandsHandler implements CommandExecutor {
                                 + ChatColor.GREEN : "")
                         + (editor.getBlacklistCollisions() > 0 ? ", " + editor.getBlacklistCollisions()
                                 + " blacklist collisions" : "") + ")");
-                logblock.fileLog.log(this.sender.getName() + " :ROLLBACK: " + this.params.getQuery());
+                rLog.log(this.sender.getName() + " :ROLLBACK: " + this.params.getQuery());
                 if (!this.params.silent && askClearLogAfterRollback
                         && CommandsHandler.this.logblock.hasPermission(this.sender, "logblock.clearlog")
                         && this.sender instanceof Player) {
@@ -677,8 +690,7 @@ public class CommandsHandler implements CommandExecutor {
                 } else if (cmd.equals("logging")) {
                     if (this.logblock.hasPermission(s, "logblock.lookup")) {
                         World world = null;
-                        if (args.length > 1)
-                            world = getServer().getWorld(args[1]);
+                        if (args.length > 1) world = getServer().getWorld(args[1]);
                         else if (s instanceof Player) world = ((Player) s).getWorld();
                         if (world != null) {
                             final WorldConfig wcfg = getWorldConfig(world.getName());
@@ -735,47 +747,42 @@ public class CommandsHandler implements CommandExecutor {
                                 toolData.params = tool.params.clone();
                                 toolData.mode = tool.mode;
                                 s.sendMessage(ChatColor.GREEN + "Tool set to default.");
-                            } else if (this.logblock.hasPermission(player, "logblock.lookup"))
-                                try {
-                                    final QueryParams params = tool.params.clone();
-                                    params.parseArgs(s, argsToList(args, 1));
-                                    toolData.params = params;
-                                    s.sendMessage(ChatColor.GREEN + "Set tool query to: "
-                                            + params.getTitle());
-                                } catch (final Exception ex) {
-                                    s.sendMessage(ChatColor.RED + ex.getMessage());
-                                }
+                            } else if (this.logblock.hasPermission(player, "logblock.lookup")) try {
+                                final QueryParams params = tool.params.clone();
+                                params.parseArgs(s, argsToList(args, 1));
+                                toolData.params = params;
+                                s.sendMessage(ChatColor.GREEN + "Set tool query to: " + params.getTitle());
+                            } catch (final Exception ex) {
+                                s.sendMessage(ChatColor.RED + ex.getMessage());
+                            }
                             else noPerms(s);
                         } else notPlayer(s);
                     } else noPerms(s);
                 } else if (cmd.equals("hide")) {
                     if (s instanceof Player) {
                         if (this.logblock.hasPermission(s, "logblock.hide")) {
-                            if (Consumer.hide((Player) s))
-                                s.sendMessage(ChatColor.GREEN
-                                        + "You are now hidden and aren't logged. Type '/lb hide' again to unhide");
+                            if (Consumer.hide((Player) s)) s
+                                    .sendMessage(ChatColor.GREEN
+                                            + "You are now hidden and aren't logged. Type '/lb hide' again to unhide");
                             else s.sendMessage(ChatColor.GREEN + "You aren't hidden anylonger.");
                         } else noPerms(s);
                     } else notPlayer(s);
                 } else if (cmd.equals("page")) {
-                    if (args.length == 2 && isInt(args[1]))
-                        showPage(s, Integer.valueOf(args[1]));
+                    if (args.length == 2 && isInt(args[1])) showPage(s, Integer.valueOf(args[1]));
                     else s.sendMessage(ChatColor.RED + "You have to specify a page");
-                } else if (cmd.equals("next") || cmd.equals("+"))
-                    showPage(s, getSession(s).page + 1);
-                else if (cmd.equals("prev") || cmd.equals("-"))
-                    showPage(s, getSession(s).page - 1);
+                } else if (cmd.equals("next") || cmd.equals("+")) showPage(s, getSession(s).page + 1);
+                else if (cmd.equals("prev") || cmd.equals("-")) showPage(s, getSession(s).page - 1);
                 else if (cmd.equals("savequeue") || cmd.equals("sq")) {
-                    if (this.logblock.hasPermission(s, "logblock.rollback"))
-                        new CommandSaveQueue(s, null, true);
+                    if (this.logblock.hasPermission(s, "logblock.rollback")) new CommandSaveQueue(s, null,
+                            true);
                     else noPerms(s);
                 } else if (cmd.equals("ssq")) {
-                    if (this.logblock.hasPermission(s, "logblock.rollback"))
-                        new CommandSilentSaveQueue(s, null, false);
+                    if (this.logblock.hasPermission(s, "logblock.rollback")) new CommandSilentSaveQueue(s,
+                            null, false);
                     else noPerms(s);
                 } else if (cmd.equals("queuesize") || cmd.equals("qs")) {
-                    if (this.logblock.hasPermission(s, "logblock.rollback"))
-                        s.sendMessage("Current queue size: " + this.logblock.getConsumer().getQueueSize());
+                    if (this.logblock.hasPermission(s, "logblock.rollback")) s
+                            .sendMessage("Current queue size: " + this.logblock.getConsumer().getQueueSize());
                     else noPerms(s);
                 } else if (cmd.equals("killconnection")) {
                     if (this.logblock.hasPermission(s, "logblock.killconnection"))
@@ -827,27 +834,27 @@ public class CommandsHandler implements CommandExecutor {
                     } else noPerms(s);
                 } else if (cmd.equals("tp")) {
                     if (s instanceof Player) {
-                        if (this.logblock.hasPermission(s, "logblock.tp"))
-                            if (args.length == 2 || isInt(args[1])) {
-                                final int pos = Integer.parseInt(args[1]) - 1;
-                                final Player player = (Player) s;
-                                final Session session = getSession(player);
-                                if (session.lookupCache != null)
-                                    if (pos >= 0 && pos < session.lookupCache.length) {
-                                        final Location loc = session.lookupCache[pos].getLocation();
-                                        if (loc != null) {
-                                            player.teleport(new Location(loc.getWorld(), loc.getX() + 0.5,
-                                                    saveSpawnHeight(loc), loc.getZ() + 0.5, player
-                                                            .getLocation().getYaw(), 90));
-                                            player.sendMessage(ChatColor.LIGHT_PURPLE + "Teleported to "
-                                                    + loc.getBlockX() + ":" + loc.getBlockY() + ":"
-                                                    + loc.getBlockZ());
-                                        } else s.sendMessage(ChatColor.RED
-                                                + "There is no location associated with that. Did you forget coords parameter?");
-                                    } else s.sendMessage(ChatColor.RED + "'" + args[1] + " is out of range");
-                                else s.sendMessage(ChatColor.RED + "You havn't done a lookup yet");
-                            } else new CommandTeleport(s, new QueryParams(this.logblock, s, argsToList(args,
-                                    1)), true);
+                        if (this.logblock.hasPermission(s, "logblock.tp")) if (args.length == 2
+                                || isInt(args[1])) {
+                            final int pos = Integer.parseInt(args[1]) - 1;
+                            final Player player = (Player) s;
+                            final Session session = getSession(player);
+                            if (session.lookupCache != null) if (pos >= 0
+                                    && pos < session.lookupCache.length) {
+                                final Location loc = session.lookupCache[pos].getLocation();
+                                if (loc != null) {
+                                    player.teleport(new Location(loc.getWorld(), loc.getX() + 0.5,
+                                            saveSpawnHeight(loc), loc.getZ() + 0.5, player.getLocation()
+                                                    .getYaw(), 90));
+                                    player.sendMessage(ChatColor.LIGHT_PURPLE + "Teleported to "
+                                            + loc.getBlockX() + ":" + loc.getBlockY() + ":"
+                                            + loc.getBlockZ());
+                                } else s.sendMessage(ChatColor.RED
+                                        + "There is no location associated with that. Did you forget coords parameter?");
+                            } else s.sendMessage(ChatColor.RED + "'" + args[1] + " is out of range");
+                            else s.sendMessage(ChatColor.RED + "You havn't done a lookup yet");
+                        } else new CommandTeleport(s,
+                                new QueryParams(this.logblock, s, argsToList(args, 1)), true);
                         else noPerms(s);
                     } else notPlayer(s);
                 } else if (cmd.equals("lookup") || QueryParams.isKeyWord(args[0])) {
@@ -872,14 +879,14 @@ public class CommandsHandler implements CommandExecutor {
             return true;
         if (rollbackMaxTime > 0 && (params.before > 0 || params.since > rollbackMaxTime)) {
             sender.sendMessage(ChatColor.RED + "You are not allowed to rollback more than "
-                    + rollbackMaxTime + " minutes");
+                    + rollbackMaxTime + " minutes.");
             return false;
         }
         if (rollbackMaxArea > 0
                 && (params.sel == null && params.loc == null || params.radius > rollbackMaxArea || params.sel != null
                         && (params.sel.getLength() > rollbackMaxArea || params.sel.getWidth() > rollbackMaxArea))) {
             sender.sendMessage(ChatColor.RED + "You are not allowed to rollback an area larger than "
-                    + rollbackMaxArea + " blocks");
+                    + rollbackMaxArea + " blocks.");
             return false;
         }
         return true;
