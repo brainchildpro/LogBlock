@@ -26,8 +26,6 @@ import de.diddiz.LogBlock.QueryParams.Order;
 import de.diddiz.LogBlock.QueryParams.SummarizationMode;
 import de.diddiz.LogBlock.config.*;
 
-import eu.icecraft_mc.rLog.rLog;
-
 public class CommandsHandler implements CommandExecutor {
     public abstract class AbstractCommand implements Runnable, Closeable {
         protected CommandSender sender;
@@ -332,7 +330,7 @@ public class CommandsHandler implements CommandExecutor {
                                 + ChatColor.GREEN : "")
                         + (editor.getBlacklistCollisions() > 0 ? ", " + editor.getBlacklistCollisions()
                                 + " blacklist collisions" : "") + ")");
-                rLog.log(this.sender.getName() + " :REDO: " + this.params.getQuery());
+                logblock.fileLog.log(this.sender.getName() + " :REDO: " + this.params.getQuery());
             } catch (final Exception ex) {
                 this.sender.sendMessage(ChatColor.RED + "Exception, check error log");
                 getLogger().log(Level.SEVERE, "[LogBlock Redo] " + this.params.getQuery() + ": ", ex);
@@ -405,7 +403,7 @@ public class CommandsHandler implements CommandExecutor {
                                 + ChatColor.GREEN : "")
                         + (editor.getBlacklistCollisions() > 0 ? ", " + editor.getBlacklistCollisions()
                                 + " blacklist collisions" : "") + ")");
-                rLog.log(this.sender.getName() + " :ROLLBACK: " + this.params.getQuery());
+                logblock.fileLog.log(this.sender.getName() + " :ROLLBACK: " + this.params.getQuery());
                 if (!this.params.silent && askClearLogAfterRollback
                         && CommandsHandler.this.logblock.hasPermission(this.sender, "logblock.clearlog")
                         && this.sender instanceof Player) {

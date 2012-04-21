@@ -195,8 +195,7 @@ public class LogBlock extends JavaPlugin {
                         .warning(
                                 "Failed to download WorldEdit. You may have to download it manually. You don't have to install it, just place the jar in the lib folder.");
             }
-        fileLog = new rLog();
-        fileLog.init("plugins/LogBlock", "lb.log", 10);
+        fileLog = new rLog("plugins/LogBlock", "lb.log", 10);
         getCommand("lb").setExecutor(commandsHandler = new CommandsHandler(this)); // Completely valid
         if (pm.getPlugin("Permissions") != null) {
             permissions = ((Permissions) pm.getPlugin("Permissions")).getHandler();
