@@ -222,18 +222,19 @@ public class CommandsHandler implements CommandExecutor {
                     return;
                 }
 
-                if (lookupMaxTime > 0 && (params.before > 0 || params.since > lookupMaxTime)) {
+                if (lookupMaxTime > 0 && (params.before > 0 || params.since > lookupMaxTime) && (params.before != -1 && params.since != -1)) {
                     sender.sendMessage(ChatColor.RED + "You are not allowed to lookup more than "
                             + lookupMaxTime + " minutes.");
                     return;
                 }
                 if (lookupMaxArea > 0
                         && (params.sel == null && params.loc == null || params.radius > lookupMaxArea || params.sel != null
-                                && (params.sel.getLength() > lookupMaxArea || params.sel.getWidth() > lookupMaxArea))) {
+                                && (params.sel.getLength() > lookupMaxArea || params.sel.getWidth() > lookupMaxArea)) && (params.radius != -1)) {
                     sender.sendMessage(ChatColor.RED + "You are not allowed to lookup an area larger than "
                             + lookupMaxArea + " blocks.");
                     return;
                 }
+                
                 this.state = conn.createStatement();
                 this.rs = this.state.executeQuery(this.params.getQuery());
                 this.sender.sendMessage(ChatColor.DARK_AQUA + this.params.getTitle() + ":");

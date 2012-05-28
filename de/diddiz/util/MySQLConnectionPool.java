@@ -31,7 +31,7 @@ public class MySQLConnectionPool implements Closeable {
             this.conn = conn;
             this.inuse = false;
             this.timestamp = 0;
-            this.networkTimeout = 10;
+            this.networkTimeout = 25;
             this.schema = "default";
         }
 
@@ -414,6 +414,7 @@ public class MySQLConnectionPool implements Closeable {
             final JDCConnection conn = itr.next();
             if (conn.inUse() && stale > conn.getLastUse() && !conn.isValid()) itr.remove();
         }
+        if(connections.size() > 50) System.out.println("Warning: " + connections.size() + " connections are open.");
         this.lock.unlock();
     }
 }

@@ -32,7 +32,7 @@ public class LogBlock extends JavaPlugin {
     public static LogBlock getInstance() {
         return logblock;
     }
-    
+
     public rLog fileLog = null;
 
     private MySQLConnectionPool pool;
@@ -147,8 +147,7 @@ public class LogBlock extends JavaPlugin {
                 int tries = 10;
                 while (consumer.getQueueSize() > 0) {
                     getLogger().info("Remaining queue size: " + consumer.getQueueSize());
-                    if (tries > 0)
-                        getLogger().info("Remaining tries: " + tries);
+                    if (tries > 0) getLogger().info("Remaining tries: " + tries);
                     else {
                         getServer().savePlayers();
                         for (World w : getServer().getWorlds())
@@ -208,8 +207,8 @@ public class LogBlock extends JavaPlugin {
         registerEvents();
         if (useBukkitScheduler) {
             if (getServer().getScheduler().scheduleAsyncRepeatingTask(this, consumer, delayBetweenRuns * 20,
-                    delayBetweenRuns * 20) > 0)
-                getLogger().info("Scheduled consumer with bukkit scheduler.");
+                    delayBetweenRuns * 20) > 0) getLogger()
+                    .info("Scheduled consumer with bukkit scheduler.");
             else scheduleTimer();
         } else {
             scheduleTimer();
@@ -251,17 +250,16 @@ public class LogBlock extends JavaPlugin {
     }
 
     public void sendPlayerConnectionLost(CommandSender sender) {
-        if (sender.isOp() || sender.hasPermission("logblock.*"))
-            sender.sendMessage(ChatColor.RED
-                    + "MySQL connection lost; please check if the MySQL server is up or try again later.");
+        if (sender.isOp() || sender.hasPermission("logblock.*")) sender.sendMessage(ChatColor.RED
+                + "MySQL connection lost; please check if the MySQL server is up or try again later.");
         else sender
                 .sendMessage(ChatColor.RED
                         + "The server handling the database is currently experiencing issues. Please try again later. (LogBlock will still log data, don't worry)");
     }
 
     public void sendPlayerException(CommandSender sender, Exception e) {
-        if (sender.isOp() || sender.hasPermission("logblock.*"))
-            sender.sendMessage(ChatColor.RED + "An error has occurred. Please check the console.");
+        if (sender.isOp() || sender.hasPermission("logblock.*")) sender.sendMessage(ChatColor.RED
+                + "An error has occurred. Please check the console.");
         else sender.sendMessage(ChatColor.RED
                 + "An error has occurred. Please ask an administrator to check the console.");
         e.printStackTrace();
@@ -304,6 +302,8 @@ public class LogBlock extends JavaPlugin {
         if (isLogging(Logging.ENDERMEN)) pm.registerEvents(new EndermenLogging(this), this);
         if (isLogging(Logging.NATURALSTRUCTUREGROW) || isLogging(Logging.BONEMEALSTRUCTUREGROW))
             pm.registerEvents(new StructureGrowLogging(this), this);
+        if (isLogging(Logging.PISTONEXTEND) || isLogging(Logging.PISTONRETRACT))
+            pm.registerEvents(new PistonLogging(this), this);
         if (logPlayerInfo) pm.registerEvents(new PlayerInfoLogging(this), this);
     }
 }

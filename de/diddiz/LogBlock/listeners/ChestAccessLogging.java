@@ -73,6 +73,20 @@ public class ChestAccessLogging extends LoggingListener {
                             "New container type detected; please update LogBlock to have support for logging this container.");
             return;
         }
+        final BlockState state = b.getState();
+        if (e.isShiftClick() && !e.isRightClick()) {
+            item = e.getCurrentItem();
+            int amount = item.getAmount();
+            if (slotClicked > containerSlots || slotClicked == -999)
+            // inside the container's window
+            consumer.queueChestAccess(p.getName(), b.getLocation(), state.getTypeId(),
+                    (short) item.getTypeId(), (short) amount, rawData(item));
+            else
+            // outside the container's window
+            consumer.queueChestAccess(p.getName(), b.getLocation(), state.getTypeId(),
+                    (short) item.getTypeId(), (short) (amount * -1), rawData(item));
+            return;
+        }
         if (item == null || item.getTypeId() == 0) {
             heldItem.put(p.getName(), !(slotClicked > containerSlots)); // true = clicked inside container
             clickedItem.put(p.getName(), new Integer(slotClicked)); // they picked it up
@@ -82,7 +96,7 @@ public class ChestAccessLogging extends LoggingListener {
         if (clickeditem != null) // should always be true but stuff can happen
             if (clickeditem > containerSlots && slotClicked > containerSlots || clickeditem < containerSlots
                     && slotClicked < containerSlots) return; // clicking in same inventory
-        final BlockState state = b.getState();
+
         Boolean cocw = heldItem.get(p.getName());
 
         boolean nodata = cocw == null;
@@ -95,7 +109,7 @@ public class ChestAccessLogging extends LoggingListener {
 
         if (slotClicked == -999 && !clickedOutsideChestWindow) return;
         int amount = item.getAmount();
-        if (e.isRightClick() && !e.isShiftClick()) amount = 1;
+        if (e.isRightClick()) amount = 1;
         if (slotClicked > containerSlots || slotClicked == -999)
         // outside the container's window
         consumer.queueChestAccess(p.getName(), b.getLocation(), state.getTypeId(), (short) item.getTypeId(),
