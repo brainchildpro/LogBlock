@@ -4,6 +4,10 @@ Package name is kept for the sake of other plugins using the API.
 
 Changes from the original LogBlock:
 
+* Add piston logging
+
+* Log sand/gravel falling
+
 * Merge Questioner into LogBlock; no need for a seperate 'API' which is just a thread that already pauses when asking; no point in having multiple plugins access it
 
 * Add 'DropQueueAfter' setting, which dumps the queue to files if it exceeds a certain size(Was originally killConnectionAfter but killing the connection caused memory leaks, so this came to mind)
