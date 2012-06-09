@@ -12,7 +12,7 @@ Changes from the original LogBlock:
 
 * Add 'DropQueueAfter' setting, which dumps the queue to files if it exceeds a certain size(Was originally killConnectionAfter but killing the connection caused memory leaks, so this came to mind)
 
-* Fixed Chest API; chest logging isn't duplicated and many players can access a chest
+* Fixed Chest logging; chest logging isn't duplicated and many players can access a chest
   at once without any issues
 
 * Plugin continues to run even if the DB could not be connected on startup. It will keep trying to
