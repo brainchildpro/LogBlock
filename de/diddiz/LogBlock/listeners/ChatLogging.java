@@ -9,8 +9,6 @@ import org.bukkit.event.server.ServerCommandEvent;
 
 import de.diddiz.LogBlock.*;
 
-
-
 public class ChatLogging extends LoggingListener {
     public ChatLogging(final LogBlock lb) {
         super(lb);

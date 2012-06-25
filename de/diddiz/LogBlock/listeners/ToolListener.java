@@ -19,8 +19,6 @@ import com.sk89q.worldedit.bukkit.selections.CuboidSelection;
 
 import de.diddiz.LogBlock.*;
 
-
-
 public class ToolListener implements Listener {
     private final CommandsHandler handler;
     private final LogBlock logblock;
@@ -73,38 +71,26 @@ public class ToolListener implements Listener {
             final int type = event.getMaterial().getId();
             final Tool tool = toolsByType.get(type);
             final Player player = event.getPlayer();
-            if (tool != null && (action == Action.RIGHT_CLICK_BLOCK || action == Action.LEFT_CLICK_BLOCK)
-                    && isLogged(player.getWorld())
-                    && this.logblock.hasPermission(player, "logblock.tools." + tool.name)) {
-                final ToolBehavior behavior = action == Action.RIGHT_CLICK_BLOCK ? tool.rightClickBehavior
-                        : tool.leftClickBehavior;
+            if (tool != null && (action == Action.RIGHT_CLICK_BLOCK || action == Action.LEFT_CLICK_BLOCK) && isLogged(player.getWorld()) && this.logblock.hasPermission(player, "logblock.tools." + tool.name)) {
+                final ToolBehavior behavior = action == Action.RIGHT_CLICK_BLOCK ? tool.rightClickBehavior : tool.leftClickBehavior;
                 final ToolData toolData = getSession(player).toolData.get(tool);
                 if (behavior != ToolBehavior.NONE && toolData.enabled) {
                     final Block block = event.getClickedBlock();
                     final QueryParams params = toolData.params;
                     params.loc = null;
                     params.sel = null;
-                    if (behavior == ToolBehavior.BLOCK)
-                        params.setLocation(block.getRelative(event.getBlockFace()).getLocation());
-                    else if (block.getTypeId() != 54 || tool.params.radius != 0)
-                        params.setLocation(block.getLocation());
+                    if (behavior == ToolBehavior.BLOCK) params.setLocation(block.getRelative(event.getBlockFace()).getLocation());
+                    else if (block.getTypeId() != 54 || tool.params.radius != 0) params.setLocation(block.getLocation());
                     else {
-                        for (final BlockFace face : new BlockFace[] { BlockFace.NORTH, BlockFace.SOUTH,
-                                BlockFace.EAST, BlockFace.WEST })
-                            if (block.getRelative(face).getTypeId() == 54)
-                                params.setSelection(new CuboidSelection(event.getPlayer().getWorld(), block
-                                        .getLocation(), block.getRelative(face).getLocation()));
+                        for (final BlockFace face : new BlockFace[] { BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST })
+                            if (block.getRelative(face).getTypeId() == 54) params.setSelection(new CuboidSelection(event.getPlayer().getWorld(), block.getLocation(), block.getRelative(face).getLocation()));
                         if (params.sel == null) params.setLocation(block.getLocation());
                     }
                     try {
-                        if (toolData.mode == ToolMode.ROLLBACK)
-                            this.handler.new CommandRollback(player, params, true);
-                        else if (toolData.mode == ToolMode.REDO)
-                            this.handler.new CommandRedo(player, params, true);
-                        else if (toolData.mode == ToolMode.CLEARLOG)
-                            this.handler.new CommandClearLog(player, params, true);
-                        else if (toolData.mode == ToolMode.WRITELOGFILE)
-                            this.handler.new CommandWriteLogFile(player, params, true);
+                        if (toolData.mode == ToolMode.ROLLBACK) this.handler.new CommandRollback(player, params, true);
+                        else if (toolData.mode == ToolMode.REDO) this.handler.new CommandRedo(player, params, true);
+                        else if (toolData.mode == ToolMode.CLEARLOG) this.handler.new CommandClearLog(player, params, true);
+                        else if (toolData.mode == ToolMode.WRITELOGFILE) this.handler.new CommandWriteLogFile(player, params, true);
                         else this.handler.new CommandLookup(player, params, true);
                     } catch (final Exception ex) {
                         // player.sendMessage(ChatColor.RED + ex.getMessage());

@@ -9,8 +9,6 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 
 import de.diddiz.LogBlock.*;
 
-
-
 public class EndermenLogging extends LoggingListener {
     public EndermenLogging(final LogBlock lb) {
         super(lb);
@@ -19,7 +17,6 @@ public class EndermenLogging extends LoggingListener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityChangeBlock(final EntityChangeBlockEvent event) {
         final Block b = event.getBlock();
-        if (event.getEntity() instanceof Enderman && isLogging(b.getWorld(), Logging.ENDERMEN))
-            consumer.queueBlockReplace("Enderman", b.getState(), event.getTo().getId(), (byte) 0);
+        if (event.getEntity() instanceof Enderman && isLogging(b.getWorld(), Logging.ENDERMEN)) consumer.queueBlockReplace("Enderman", b.getState(), event.getTo().getId(), (byte) 0);
     }
 }

@@ -4,8 +4,6 @@ import org.bukkit.event.Listener;
 
 import de.diddiz.LogBlock.*;
 
-
-
 public class LoggingListener implements Listener {
     protected final Consumer consumer;
 

@@ -11,8 +11,6 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import de.diddiz.LogBlock.*;
 import de.diddiz.LogBlock.config.WorldConfig;
 
-
-
 public class ExplosionLogging extends LoggingListener {
     public ExplosionLogging(final LogBlock lb) {
         super(lb);
@@ -48,10 +46,8 @@ public class ExplosionLogging extends LoggingListener {
             for (final Block block : event.blockList()) {
                 final BlockState bs = block.getState();
                 final int type = block.getTypeId();
-                if (wcfg.isLogging(Logging.SIGNTEXT) & (type == 63 || type == 68))
-                    consumer.queueSignBreak(name, (Sign) bs);
-                else if (wcfg.isLogging(Logging.CHESTACCESS) && (type == 23 || type == 54 || type == 61))
-                    consumer.queueContainerBreak(name, bs);
+                if (wcfg.isLogging(Logging.SIGNTEXT) & (type == 63 || type == 68)) consumer.queueSignBreak(name, (Sign) bs);
+                else if (wcfg.isLogging(Logging.CHESTACCESS) && (type == 23 || type == 54 || type == 61)) consumer.queueContainerBreak(name, bs);
                 else consumer.queueBlockBreak(name, bs);
             }
         }

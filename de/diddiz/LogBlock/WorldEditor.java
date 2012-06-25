@@ -20,6 +20,22 @@ import org.bukkit.inventory.*;
 import org.bukkit.material.*;
 
 public class WorldEditor implements Runnable {
+    private final LogBlock logblock;
+
+    private final Queue<Edit> edits = new LinkedBlockingQueue<Edit>();
+
+    final World world;
+
+    private int taskID;
+    private int successes = 0, blacklistCollisions = 0;
+    private long elapsedTime = 0;
+    public LookupCacheElement[] errors;
+
+    public WorldEditor(final LogBlock logblock, final World world) {
+        this.logblock = logblock;
+        this.world = world;
+    }
+
     @SuppressWarnings("serial")
     public static class WorldEditorException extends Exception implements LookupCacheElement {
         private final Location loc;
@@ -29,8 +45,7 @@ public class WorldEditor implements Runnable {
         }
 
         public WorldEditorException(final String msg, final Location loc) {
-            super(msg + " at " + loc.getWorld().getName() + ":" + loc.getBlockX() + ":" + loc.getBlockY()
-                    + ":" + loc.getBlockZ());
+            super(msg + " at " + loc.getWorld().getName() + ":" + loc.getBlockX() + ":" + loc.getBlockY() + ":" + loc.getBlockZ());
             this.loc = loc;
         }
 
@@ -41,8 +56,7 @@ public class WorldEditor implements Runnable {
     }
 
     private class Edit extends BlockChange {
-        public Edit(final long time, final Location loc, final String playerName, final int replaced,
-                final int type, final byte data, final String signtext, final ChestAccess ca) {
+        public Edit(final long time, final Location loc, final String playerName, final int replaced, final int type, final byte data, final String signtext, final ChestAccess ca) {
             super(time, loc, playerName, replaced, type, data, signtext, ca);
         }
 
@@ -54,44 +68,32 @@ public class WorldEditor implements Runnable {
             if (!world.isChunkLoaded(block.getChunk())) world.loadChunk(block.getChunk());
             if (type == replaced) {
                 if (type == 0) {
-                    if (!block.setTypeId(0))
-                        throw new WorldEditorException(block.getTypeId(), 0, block.getLocation());
+                    if (!block.setTypeId(0)) throw new WorldEditorException(block.getTypeId(), 0, block.getLocation());
                 } else if (ca != null && (type == 23 || type == 54 || type == 61 || type == 62)) {
                     int leftover = 0;
                     try {
-                        leftover = modifyContainer(state, new ItemStack(ca.itemType, -ca.itemAmount,
-                                (short) 0, ca.itemData));
+                        leftover = modifyContainer(state, new ItemStack(ca.itemType, -ca.itemAmount, (short) 0, ca.itemData));
                         if (leftover > 0)
-                            for (final BlockFace face : new BlockFace[] { BlockFace.NORTH, BlockFace.SOUTH,
-                                    BlockFace.EAST, BlockFace.WEST })
+                            for (final BlockFace face : new BlockFace[] { BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST })
                                 if (block.getRelative(face).getTypeId() == 54)
-                                    leftover = modifyContainer(block.getRelative(face).getState(),
-                                            new ItemStack(ca.itemType, ca.itemAmount < 0 ? leftover
-                                                    : -leftover, (short) 0, ca.itemData));
+                                    leftover = modifyContainer(block.getRelative(face).getState(), new ItemStack(ca.itemType, ca.itemAmount < 0 ? leftover : -leftover, (short) 0, ca.itemData));
                     } catch (final Exception ex) {
                         throw new WorldEditorException(ex.getMessage(), block.getLocation());
                     }
-                    if (!state.update())
-                        throw new WorldEditorException("Failed to update inventory of "
-                                + materialName(block.getTypeId()), block.getLocation());
-                    if (leftover > 0 && ca.itemAmount < 0)
-                        throw new WorldEditorException("Not enough space left in "
-                                + materialName(block.getTypeId()), block.getLocation());
+                    if (!state.update()) throw new WorldEditorException("Failed to update inventory of " + materialName(block.getTypeId()), block.getLocation());
+                    if (leftover > 0 && ca.itemAmount < 0) throw new WorldEditorException("Not enough space left in " + materialName(block.getTypeId()), block.getLocation());
                 } else return PerformResult.NO_ACTION;
                 return PerformResult.SUCCESS;
             }
-            if (!(equalTypes(block.getTypeId(), type) || replaceAnyway.contains(block.getTypeId())))
-                return PerformResult.NO_ACTION;
+            if (!(equalTypes(block.getTypeId(), type) || replaceAnyway.contains(block.getTypeId()))) return PerformResult.NO_ACTION;
             if (state instanceof InventoryHolder) {
                 ((InventoryHolder) state).getInventory().clear();
                 state.update();
             }
             if (block.getTypeId() == replaced) {
-                if (block.getData() != (type == 0 ? data : (byte) 0))
-                    block.setData(type == 0 ? data : (byte) 0, true);
+                if (block.getData() != (type == 0 ? data : (byte) 0)) block.setData(type == 0 ? data : (byte) 0, true);
                 else return PerformResult.NO_ACTION;
-            } else if (!block.setTypeIdAndData(replaced, type == 0 ? data : (byte) 0, true))
-                throw new WorldEditorException(block.getTypeId(), replaced, block.getLocation());
+            } else if (!block.setTypeIdAndData(replaced, type == 0 ? data : (byte) 0, true)) throw new WorldEditorException(block.getTypeId(), replaced, block.getLocation());
             final int curtype = block.getTypeId();
             if (signtext != null && (curtype == 63 || curtype == 68)) {
                 final Sign sign = (Sign) block.getState();
@@ -99,62 +101,32 @@ public class WorldEditor implements Runnable {
                 if (lines.length < 4) return PerformResult.NO_ACTION;
                 for (int i = 0; i < 4; i++)
                     sign.setLine(i, lines[i]);
-                if (!sign.update())
-                    throw new WorldEditorException("Failed to update signtext of "
-                            + materialName(block.getTypeId()), block.getLocation());
+                if (!sign.update()) throw new WorldEditorException("Failed to update signtext of " + materialName(block.getTypeId()), block.getLocation());
             } else if (curtype == 26) {
                 final Bed bed = (Bed) block.getState().getData();
-                final Block secBlock = bed.isHeadOfBed() ? block.getRelative(bed.getFacing()
-                        .getOppositeFace()) : block.getRelative(bed.getFacing());
-                if (secBlock.getTypeId() == 0
-                        && !secBlock.setTypeIdAndData(26, (byte) (bed.getData() | 8), true))
-                    throw new WorldEditorException(secBlock.getTypeId(), 26, secBlock.getLocation());
+                final Block secBlock = bed.isHeadOfBed() ? block.getRelative(bed.getFacing().getOppositeFace()) : block.getRelative(bed.getFacing());
+                if (secBlock.getTypeId() == 0 && !secBlock.setTypeIdAndData(26, (byte) (bed.getData() | 8), true)) throw new WorldEditorException(secBlock.getTypeId(), 26, secBlock.getLocation());
             } else if (curtype == 64 || curtype == 71) {
                 final byte blockData = block.getData();
-                final Block secBlock = (blockData & 8) == 8 ? block.getRelative(BlockFace.DOWN) : block
-                        .getRelative(BlockFace.UP);
-                if (secBlock.getTypeId() == 0
-                        && !secBlock.setTypeIdAndData(curtype, (byte) (blockData | 8), true))
-                    throw new WorldEditorException(secBlock.getTypeId(), curtype, secBlock.getLocation());
+                final Block secBlock = (blockData & 8) == 8 ? block.getRelative(BlockFace.DOWN) : block.getRelative(BlockFace.UP);
+                if (secBlock.getTypeId() == 0 && !secBlock.setTypeIdAndData(curtype, (byte) (blockData | 8), true)) throw new WorldEditorException(secBlock.getTypeId(), curtype, secBlock.getLocation());
             } else if ((curtype == 29 || curtype == 33) && (block.getData() & 8) > 0) {
                 final PistonBaseMaterial piston = (PistonBaseMaterial) block.getState().getData();
                 final Block secBlock = block.getRelative(piston.getFacing());
-                if (secBlock.getTypeId() == 0
-                        && !secBlock.setTypeIdAndData(34, curtype == 29 ? (byte) (block.getData() | 8)
-                                : (byte) (block.getData() & ~8), true))
+                if (secBlock.getTypeId() == 0 && !secBlock.setTypeIdAndData(34, curtype == 29 ? (byte) (block.getData() | 8) : (byte) (block.getData() & ~8), true))
                     throw new WorldEditorException(secBlock.getTypeId(), 34, secBlock.getLocation());
             } else if (curtype == 34) {
                 final PistonExtensionMaterial piston = (PistonExtensionMaterial) block.getState().getData();
                 final Block secBlock = block.getRelative(piston.getFacing().getOppositeFace());
-                if (secBlock.getTypeId() == 0
-                        && !secBlock.setTypeIdAndData(piston.isSticky() ? 29 : 33,
-                                (byte) (block.getData() | 8), true))
-                    throw new WorldEditorException(secBlock.getTypeId(), piston.isSticky() ? 29 : 33,
-                            secBlock.getLocation());
-            } else if (curtype == 18 && (block.getData() & 8) > 0)
-                block.setData((byte) (block.getData() & 0xF7));
+                if (secBlock.getTypeId() == 0 && !secBlock.setTypeIdAndData(piston.isSticky() ? 29 : 33, (byte) (block.getData() | 8), true))
+                    throw new WorldEditorException(secBlock.getTypeId(), piston.isSticky() ? 29 : 33, secBlock.getLocation());
+            } else if (curtype == 18 && (block.getData() & 8) > 0) block.setData((byte) (block.getData() & 0xF7));
             return PerformResult.SUCCESS;
         }
     }
 
     private static enum PerformResult {
         SUCCESS, BLACKLISTED, NO_ACTION
-    }
-
-    private final LogBlock logblock;
-    private final Queue<Edit> edits = new LinkedBlockingQueue<Edit>();
-    final World world;
-    private int taskID;
-
-    private int successes = 0, blacklistCollisions = 0;
-
-    private long elapsedTime = 0;
-
-    public LookupCacheElement[] errors;
-
-    public WorldEditor(final LogBlock logblock, final World world) {
-        this.logblock = logblock;
-        this.world = world;
     }
 
     public int getBlacklistCollisions() {
@@ -177,11 +149,8 @@ public class WorldEditor implements Runnable {
         return successes;
     }
 
-    public void queueEdit(final int x, final int y, final int z, final int replaced, final int type,
-            final byte data, final String signtext, final short itemType, final short itemAmount,
-            final byte itemData) {
-        edits.add(new Edit(0, new Location(world, x, y, z), null, replaced, type, data, signtext,
-                new ChestAccess(itemType, itemAmount, itemData)));
+    public void queueEdit(final int x, final int y, final int z, final int replaced, final int type, final byte data, final String signtext, final short itemType, final short itemAmount, final byte itemData) {
+        edits.add(new Edit(0, new Location(world, x, y, z), null, replaced, type, data, signtext, new ChestAccess(itemType, itemAmount, itemData)));
     }
 
     @SuppressWarnings("incomplete-switch")
@@ -208,18 +177,14 @@ public class WorldEditor implements Runnable {
         }
         if (edits.isEmpty()) {
             logblock.getServer().getScheduler().cancelTask(taskID);
-            if (errorList.size() > 0)
-                try {
-                    final File file = new File("plugins/LogBlock/error/WorldEditor-"
-                            + new SimpleDateFormat("yy-MM-dd-HH-mm-ss").format(System.currentTimeMillis())
-                            + ".log");
-                    file.getParentFile().mkdirs();
-                    final PrintWriter writer = new PrintWriter(file);
-                    for (final LookupCacheElement err : errorList)
-                        writer.println(err.getMessage());
-                    writer.close();
-                } catch (final Exception ex) {
-                }
+            if (errorList.size() > 0) try {
+                final File file = new File("plugins/LogBlock/error/WorldEditor-" + new SimpleDateFormat("yy-MM-dd-HH-mm-ss").format(System.currentTimeMillis()) + ".log");
+                file.getParentFile().mkdirs();
+                final PrintWriter writer = new PrintWriter(file);
+                for (final LookupCacheElement err : errorList)
+                    writer.println(err.getMessage());
+                writer.close();
+            } catch (final Exception ex) {}
             errors = errorList.toArray(new WorldEditorException[errorList.size()]);
             notify();
         }

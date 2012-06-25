@@ -16,9 +16,9 @@ public class DumpedLogImporter implements Runnable {
         this.logblock = logblock;
     }
 
+    @Override
     public void run() {
-        final File[] imports = new File("plugins/LogBlock/import/").listFiles(new ExtensionFilenameFilter(
-                "sql"));
+        final File[] imports = new File("plugins/LogBlock/import/").listFiles(new ExtensionFilenameFilter("sql"));
         if (imports != null && imports.length > 0) {
             getLogger().info("[LogBlock] Found " + imports.length + " imports.");
             Connection conn = null;
@@ -30,8 +30,7 @@ public class DumpedLogImporter implements Runnable {
                 }
                 conn.setAutoCommit(false);
                 final Statement st = conn.createStatement();
-                final BufferedWriter writer = new BufferedWriter(new FileWriter(new File(
-                        this.logblock.getDataFolder(), "import/failed.txt")));
+                final BufferedWriter writer = new BufferedWriter(new FileWriter(new File(this.logblock.getDataFolder(), "import/failed.txt")));
                 int successes = 0, errors = 0;
                 for (final File sqlFile : imports) {
                     getLogger().info("[LogBlock] Trying to import " + sqlFile.getName() + " ...");
@@ -42,8 +41,7 @@ public class DumpedLogImporter implements Runnable {
                             st.execute(line);
                             successes++;
                         } catch (final Exception ex) {
-                            getLogger().warning(
-                                    "[LogBlock] Error while importing: '" + line + "': " + ex.getMessage());
+                            getLogger().warning("[LogBlock] Error while importing: '" + line + "': " + ex.getMessage());
                             writer.write(line + newline);
                             errors++;
                         }
@@ -54,16 +52,13 @@ public class DumpedLogImporter implements Runnable {
                 }
                 writer.close();
                 st.close();
-                getLogger().info(
-                        "[LogBlock] Successfully imported stored queue. (" + successes + " rows imported, "
-                                + errors + " errors)");
+                getLogger().info("[LogBlock] Successfully imported stored queue. (" + successes + " rows imported, " + errors + " errors)");
             } catch (final Exception ex) {
                 getLogger().log(Level.WARNING, "[LogBlock] Error while importing: ", ex);
             } finally {
                 if (conn != null) try {
                     conn.close();
-                } catch (final SQLException ex) {
-                }
+                } catch (final SQLException ex) {}
             }
         }
     }

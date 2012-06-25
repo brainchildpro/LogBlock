@@ -8,8 +8,6 @@ import org.bukkit.event.block.BlockFadeEvent;
 
 import de.diddiz.LogBlock.*;
 
-
-
 public class SnowFadeLogging extends LoggingListener {
     public SnowFadeLogging(final LogBlock lb) {
         super(lb);
@@ -20,8 +18,7 @@ public class SnowFadeLogging extends LoggingListener {
         final Block b = event.getBlock();
         if (isLogging(b.getWorld(), Logging.SNOWFADE)) {
             final int type = b.getTypeId();
-            if (type == 78 || type == 79)
-                consumer.queueBlockReplace("SnowFade", b.getState(), event.getNewState());
+            if (type == 78 || type == 79) consumer.queueBlockReplace("SnowFade", b.getState(), event.getNewState());
         }
     }
 }

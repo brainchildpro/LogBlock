@@ -16,14 +16,9 @@ import org.bukkit.permissions.PermissionDefault;
 
 import de.diddiz.LogBlock.*;
 
-
-
 public class Config {
-    public static enum LogKillsLevel {
-        PLAYERS, MONSTERS, ANIMALS;
-    }
-
     private static LoggingEnabledMapping superWorldConfig;
+
     private static Map<String, WorldConfig> worldConfigs;
     public static String url, user, password;
     public static int delayBetweenRuns, forceToProcessAtLeast, timePerRun, dropQueueAfter;
@@ -40,13 +35,15 @@ public class Config {
     public static Map<Integer, Tool> toolsByType;
     public static int defaultDist, defaultTime;
     public static int linesPerPage, linesLimit;
-    public static boolean askRollbacks, askRedos, askClearLogs, askClearLogAfterRollback,
-            askRollbackAfterBan;
+    public static boolean askRollbacks, askRedos, askClearLogs, askClearLogAfterRollback, askRollbackAfterBan;
     public static int lookupMaxArea, lookupMaxTime;
     public static String banPermission;
     public static Set<Integer> hiddenBlocks;
-
     public static Set<String> hiddenPlayers;
+
+    public static enum LogKillsLevel {
+        PLAYERS, MONSTERS, ANIMALS;
+    }
 
     public static Collection<WorldConfig> getLoggedWorlds() {
         return worldConfigs.values();
@@ -94,8 +91,7 @@ public class Config {
         def.put("consumer.dropQueueAfter", 4000);
         def.put("clearlog.dumpDeletedLog", false);
         def.put("clearlog.enableAutoClearLog", false);
-        def.put("clearlog.auto", Arrays.asList("world \"world\" before 365 days all",
-                "world \"world\" player lavaflow waterflow leavesdecay before 7 days all"));
+        def.put("clearlog.auto", Arrays.asList("world \"world\" before 365 days all", "world \"world\" player lavaflow waterflow leavesdecay before 7 days all"));
         def.put("clearlog.autoClearLogDelay", "6h");
         def.put("logging.logCreeperExplosionsAsPlayerWhoTriggeredThese", false);
         def.put("logging.logKillsLevel", "PLAYERS");
@@ -139,8 +135,7 @@ public class Config {
         for (final Entry<String, Object> e : def.entrySet())
             if (!config.contains(e.getKey())) config.set(e.getKey(), e.getValue());
         logblock.saveConfig();
-        url = "jdbc:mysql://" + config.getString("mysql.host") + ":" + config.getInt("mysql.port") + "/"
-                + getStringIncludingInts(config, "mysql.database");
+        url = "jdbc:mysql://" + config.getString("mysql.host") + ":" + config.getInt("mysql.port") + "/" + getStringIncludingInts(config, "mysql.database");
         String username = config.getString("mysql.user");
         if (username == null) username = String.valueOf(config.getInt("mysql.user"));
         user = getStringIncludingInts(config, "mysql.user");
@@ -154,14 +149,12 @@ public class Config {
         autoClearLog = config.getStringList("clearlog.auto");
         dumpDeletedLog = config.getBoolean("clearlog.dumpDeletedLog", false);
         autoClearLogDelay = parseTimeSpec(config.getString("clearlog.autoClearLogDelay").split(" "));
-        logCreeperExplosionsAsPlayerWhoTriggeredThese = config.getBoolean(
-                "logging.logCreeperExplosionsAsPlayerWhoTriggeredThese", false);
+        logCreeperExplosionsAsPlayerWhoTriggeredThese = config.getBoolean("logging.logCreeperExplosionsAsPlayerWhoTriggeredThese", false);
         logPlayerInfo = config.getBoolean("logging.logPlayerInfo", true);
         try {
             logKillsLevel = LogKillsLevel.valueOf(config.getString("logging.logKillsLevel").toUpperCase());
         } catch (final IllegalArgumentException ex) {
-            throw new DataFormatException(
-                    "lookup.toolblockID doesn't appear to be a valid log level. Allowed are 'PLAYERS', 'MONSTERS' and 'ANIMALS'");
+            throw new DataFormatException("lookup.toolblockID doesn't appear to be a valid log level. Allowed are 'PLAYERS', 'MONSTERS' and 'ANIMALS'");
         }
         hiddenPlayers = new HashSet<String>();
         for (final String playerName : config.getStringList("logging.hiddenPlayers"))
@@ -169,8 +162,7 @@ public class Config {
         hiddenBlocks = new HashSet<Integer>();
         for (final Object blocktype : config.getList("logging.hiddenBlocks")) {
             final Material mat = Material.matchMaterial(String.valueOf(blocktype));
-            if (mat != null)
-                hiddenBlocks.add(mat.getId());
+            if (mat != null) hiddenBlocks.add(mat.getId());
             else throw new DataFormatException("Not a valid material: '" + blocktype + "'");
         }
         dontRollback = new HashSet<Integer>(config.getIntegerList("rollback.dontRollback"));
@@ -195,10 +187,8 @@ public class Config {
             try {
                 final ConfigurationSection tSec = toolsSec.getConfigurationSection(toolName);
                 final List<String> aliases = tSec.getStringList("aliases");
-                final ToolBehavior leftClickBehavior = ToolBehavior.valueOf(tSec.getString(
-                        "leftClickBehavior").toUpperCase());
-                final ToolBehavior rightClickBehavior = ToolBehavior.valueOf(tSec.getString(
-                        "rightClickBehavior").toUpperCase());
+                final ToolBehavior leftClickBehavior = ToolBehavior.valueOf(tSec.getString("leftClickBehavior").toUpperCase());
+                final ToolBehavior rightClickBehavior = ToolBehavior.valueOf(tSec.getString("rightClickBehavior").toUpperCase());
                 final boolean defaultEnabled = tSec.getBoolean("defaultEnabled", false);
                 final int item = tSec.getInt("item", 0);
                 final boolean canDrop = tSec.getBoolean("canDrop", false);
@@ -206,10 +196,8 @@ public class Config {
                 params.prepareToolQuery = true;
                 params.parseArgs(getConsoleSender(), Arrays.asList(tSec.getString("params").split(" ")));
                 final ToolMode mode = ToolMode.valueOf(tSec.getString("mode").toUpperCase());
-                final PermissionDefault pdef = PermissionDefault.valueOf(tSec.getString("permissionDefault")
-                        .toUpperCase());
-                tools.add(new Tool(toolName, aliases, leftClickBehavior, rightClickBehavior, defaultEnabled,
-                        item, canDrop, params, mode, pdef));
+                final PermissionDefault pdef = PermissionDefault.valueOf(tSec.getString("permissionDefault").toUpperCase());
+                tools.add(new Tool(toolName, aliases, leftClickBehavior, rightClickBehavior, defaultEnabled, item, canDrop, params, mode, pdef));
             } catch (final Exception ex) {
                 getLogger().log(Level.WARNING, "Error at parsing tool '" + toolName + "': ", ex);
             }
@@ -225,8 +213,7 @@ public class Config {
         worldConfigs = new HashMap<String, WorldConfig>();
         if (loggedWorlds.size() == 0) throw new DataFormatException("No worlds configured");
         for (final String world : loggedWorlds)
-            worldConfigs.put(world, new WorldConfig(new File(logblock.getDataFolder(),
-                    friendlyWorldname(world) + ".yml")));
+            worldConfigs.put(world, new WorldConfig(new File(logblock.getDataFolder(), friendlyWorldname(world) + ".yml")));
         superWorldConfig = new LoggingEnabledMapping();
         for (final WorldConfig wcfg : worldConfigs.values())
             for (final Logging l : Logging.values())

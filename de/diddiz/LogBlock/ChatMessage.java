@@ -22,12 +22,13 @@ public class ChatMessage implements LookupCacheElement {
         this.message = message;
     }
 
+    @Override
     public Location getLocation() {
         return null;
     }
 
+    @Override
     public String getMessage() {
-        return (this.playerName != null ? "<" + this.playerName + "> " : "")
-                + (this.message != null ? this.message : "");
+        return (this.playerName != null ? "<" + this.playerName + "> " : "") + (this.message != null ? this.message : "");
     }
 }

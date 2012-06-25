@@ -35,32 +35,29 @@ public class ChestAccessLogging extends LoggingListener {
         final int slotClicked = e.getRawSlot();
         InventoryType type = e.getInventory().getType();
         ItemStack item = e.getCursor();
-        if (type == InventoryType.PLAYER || type == InventoryType.CREATIVE
-                || type == InventoryType.WORKBENCH || type == InventoryType.ENCHANTING
-                || type == InventoryType.CRAFTING) return;
-        final InventoryHolder h = e.getInventory().getHolder();
-        if (h instanceof Entity) return; // storage minecarts
+        if (type == InventoryType.PLAYER || type == InventoryType.CREATIVE || type == InventoryType.WORKBENCH || type == InventoryType.ENCHANTING || type == InventoryType.CRAFTING) return;
+        final InventoryHolder holder = e.getInventory().getHolder();
+        if (holder instanceof Entity || holder == null) return; // storage minecarts/closed inventory
         Block b = null;
         boolean unknown = false;
         final int containerSlots;
         if (type == InventoryType.CHEST) {
-            if (h instanceof Chest) {
-                b = ((Chest) h).getBlock();
+            if (holder instanceof Chest) {
+                b = ((Chest) holder).getBlock();
                 containerSlots = 26;
-            } else {
-                b = ((Chest) ((DoubleChest) h).getLeftSide()).getBlock();
+            } else if (holder instanceof DoubleChest) {
+                b = ((Chest) ((DoubleChest) holder).getLeftSide()).getBlock();
                 containerSlots = 53;
-            }
+            } else return;
         } else if (type == InventoryType.BREWING) {
-            b = ((BrewingStand) h).getBlock();
+            b = ((BrewingStand) holder).getBlock();
             containerSlots = 3;
             if (item != null && item.getType() != Material.POTION) return;
         } else if (type == InventoryType.DISPENSER) {
-            b = ((Dispenser) h).getBlock();
+            b = ((Dispenser) holder).getBlock();
             containerSlots = 8;
         } else if (type == InventoryType.FURNACE) {
-            b = ((Furnace) h).getBlock();
-            if (slotClicked == 2) return; // cannot place in that slot
+            b = ((Furnace) holder).getBlock();
             containerSlots = 2;
         } else {
             unknown = true;
@@ -68,23 +65,19 @@ public class ChestAccessLogging extends LoggingListener {
         }
 
         if (b == null || unknown) {
-            lb.getLogger()
-                    .warning(
-                            "New container type detected; please update LogBlock to have support for logging this container.");
+            lb.getLogger().warning("New container type detected; please update LogBlock to have support for logging this container.");
             return;
         }
         final BlockState state = b.getState();
-        if (e.isShiftClick() && !e.isRightClick()) {
+        if (e.isShiftClick()) {
             item = e.getCurrentItem();
             int amount = item.getAmount();
             if (slotClicked > containerSlots || slotClicked == -999)
             // inside the container's window
-            consumer.queueChestAccess(p.getName(), b.getLocation(), state.getTypeId(),
-                    (short) item.getTypeId(), (short) amount, rawData(item));
+            consumer.queueChestAccess(p.getName(), b.getLocation(), state.getTypeId(), (short) item.getTypeId(), (short) amount, rawData(item));
             else
             // outside the container's window
-            consumer.queueChestAccess(p.getName(), b.getLocation(), state.getTypeId(),
-                    (short) item.getTypeId(), (short) (amount * -1), rawData(item));
+            consumer.queueChestAccess(p.getName(), b.getLocation(), state.getTypeId(), (short) item.getTypeId(), (short) (amount * -1), rawData(item));
             return;
         }
         if (item == null || item.getTypeId() == 0) {
@@ -93,9 +86,8 @@ public class ChestAccessLogging extends LoggingListener {
             return;
         }
         Integer clickeditem = clickedItem.get(p.getName());
-        if (clickeditem != null) // should always be true but stuff can happen
-            if (clickeditem > containerSlots && slotClicked > containerSlots || clickeditem < containerSlots
-                    && slotClicked < containerSlots) return; // clicking in same inventory
+        if (clickeditem != null) if (clickeditem > containerSlots && slotClicked > containerSlots || clickeditem < containerSlots && slotClicked < containerSlots) return;
+        // clicking in same inventory
 
         Boolean cocw = heldItem.get(p.getName());
 
@@ -112,11 +104,9 @@ public class ChestAccessLogging extends LoggingListener {
         if (e.isRightClick()) amount = 1;
         if (slotClicked > containerSlots || slotClicked == -999)
         // outside the container's window
-        consumer.queueChestAccess(p.getName(), b.getLocation(), state.getTypeId(), (short) item.getTypeId(),
-                (short) (amount * -1), rawData(item));
+        consumer.queueChestAccess(p.getName(), b.getLocation(), state.getTypeId(), (short) item.getTypeId(), (short) (amount * -1), rawData(item));
         else // inside the container's window
-        consumer.queueChestAccess(p.getName(), b.getLocation(), state.getTypeId(), (short) item.getTypeId(),
-                (short) amount, rawData(item));
+        consumer.queueChestAccess(p.getName(), b.getLocation(), state.getTypeId(), (short) item.getTypeId(), (short) amount, rawData(item));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

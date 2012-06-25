@@ -8,8 +8,6 @@ import org.bukkit.event.block.*;
 
 import de.diddiz.LogBlock.*;
 
-
-
 public class SnowFormLogging extends LoggingListener {
     public SnowFormLogging(final LogBlock lb) {
         super(lb);
@@ -27,7 +25,6 @@ public class SnowFormLogging extends LoggingListener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onLeavesDecay(final LeavesDecayEvent event) {
-        if (isLogging(event.getBlock().getWorld(), Logging.SNOWFORM))
-            this.consumer.queueBlockBreak("LeavesDecay", event.getBlock().getState());
+        if (isLogging(event.getBlock().getWorld(), Logging.SNOWFORM)) this.consumer.queueBlockBreak("LeavesDecay", event.getBlock().getState());
     }
 }

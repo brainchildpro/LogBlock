@@ -17,23 +17,19 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import de.diddiz.LogBlock.config.WorldConfig;
 
-
-
 class Updater {
-    private static void createTable(final DatabaseMetaData dbm, final Statement state, final String table,
-            final String query) throws SQLException {
-        if (!dbm.getTables(null, null, table, null).next()) {
-            getLogger().log(Level.INFO, "[LogBlock] Creating table " + table + ".");
-            state.execute("CREATE TABLE `" + table + "` " + query);
-            if (!dbm.getTables(null, null, table, null).next())
-                throw new SQLException("Table " + table + " not found and failed to create");
-        }
-    }
-
     private final LogBlock logblock;
 
     Updater(final LogBlock logblock) {
         this.logblock = logblock;
+    }
+
+    private static void createTable(final DatabaseMetaData dbm, final Statement state, final String table, final String query) throws SQLException {
+        if (!dbm.getTables(null, null, table, null).next()) {
+            getLogger().log(Level.INFO, "[LogBlock] Creating table " + table + ".");
+            state.execute("CREATE TABLE `" + table + "` " + query);
+            if (!dbm.getTables(null, null, table, null).next()) throw new SQLException("Table " + table + " not found and failed to create");
+        }
     }
 
     void checkTables() throws SQLException {
@@ -48,10 +44,7 @@ class Updater {
                 "lb-players",
                 "(playerid SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT, playername varchar(32) NOT NULL, firstlogin DATETIME NOT NULL, lastlogin DATETIME NOT NULL, onlinetime INT UNSIGNED NOT NULL, ip varchar(255) NOT NULL, PRIMARY KEY (playerid), UNIQUE (playername))");
         if (isLogging(Logging.CHAT))
-            createTable(
-                    dbm,
-                    state,
-                    "lb-chat",
+            createTable(dbm, state, "lb-chat",
                     "(id INT UNSIGNED NOT NULL AUTO_INCREMENT, date DATETIME NOT NULL, playerid SMALLINT UNSIGNED NOT NULL, message VARCHAR(255) NOT NULL, PRIMARY KEY (id), KEY playerid (playerid), FULLTEXT message (message)) ENGINE=MyISAM");
         for (final WorldConfig wcfg : getLoggedWorlds()) {
             createTable(
@@ -59,13 +52,8 @@ class Updater {
                     state,
                     wcfg.table,
                     "(id INT UNSIGNED NOT NULL AUTO_INCREMENT, date DATETIME NOT NULL, playerid SMALLINT UNSIGNED NOT NULL, replaced TINYINT UNSIGNED NOT NULL, type TINYINT UNSIGNED NOT NULL, data TINYINT UNSIGNED NOT NULL, x SMALLINT NOT NULL, y TINYINT UNSIGNED NOT NULL, z SMALLINT NOT NULL, PRIMARY KEY (id), KEY coords (x, z, y), KEY date (date), KEY playerid (playerid))");
-            createTable(dbm, state, wcfg.table + "-sign",
-                    "(id INT UNSIGNED NOT NULL, signtext VARCHAR(255) NOT NULL, PRIMARY KEY (id))");
-            createTable(
-                    dbm,
-                    state,
-                    wcfg.table + "-chest",
-                    "(id INT UNSIGNED NOT NULL, itemtype SMALLINT UNSIGNED NOT NULL, itemamount SMALLINT NOT NULL, itemdata TINYINT UNSIGNED NOT NULL, PRIMARY KEY (id))");
+            createTable(dbm, state, wcfg.table + "-sign", "(id INT UNSIGNED NOT NULL, signtext VARCHAR(255) NOT NULL, PRIMARY KEY (id))");
+            createTable(dbm, state, wcfg.table + "-chest", "(id INT UNSIGNED NOT NULL, itemtype SMALLINT UNSIGNED NOT NULL, itemamount SMALLINT NOT NULL, itemdata TINYINT UNSIGNED NOT NULL, PRIMARY KEY (id))");
             if (wcfg.isLogging(Logging.KILL))
                 createTable(
                         dbm,
@@ -79,8 +67,7 @@ class Updater {
 
     String checkVersion() {
         try {
-            return readURL(new URL("http://diddiz.insane-architects.net/lbuptodate.php?v="
-                    + this.logblock.getDescription().getVersion()));
+            return readURL(new URL("http://diddiz.insane-architects.net/lbuptodate.php?v=" + this.logblock.getDescription().getVersion()));
         } catch (final Exception ex) {
             return "Can't check version";
         }
@@ -88,8 +75,7 @@ class Updater {
 
     boolean update() {
         final ConfigurationSection config = this.logblock.getConfig();
-        if (config.getString("version").compareTo(this.logblock.getDescription().getVersion()) >= 0)
-            return false;
+        if (config.getString("version").compareTo(this.logblock.getDescription().getVersion()) >= 0) return false;
         if (config.getString("version").compareTo("1.27") < 0) {
             getLogger().info("[LogBlock] Updating tables to 1.27 ...");
             if (isLogging(Logging.CHAT)) {
@@ -110,8 +96,7 @@ class Updater {
         if (config.getString("version").compareTo("1.30") < 0) {
             getLogger().info("[LogBlock] Updating config to 1.30 ...");
             for (final String tool : config.getConfigurationSection("tools").getKeys(false))
-                if (config.get("tools." + tool + ".permissionDefault") == null)
-                    config.set("tools." + tool + ".permissionDefault", "OP");
+                if (config.get("tools." + tool + ".permissionDefault") == null) config.set("tools." + tool + ".permissionDefault", "OP");
             config.set("version", "1.30");
         }
         if (config.getString("version").compareTo("1.31") < 0) {
@@ -154,34 +139,22 @@ class Updater {
             for (final String world : config.getStringList("loggedWorlds")) {
                 final File file = new File(this.logblock.getDataFolder(), friendlyWorldname(world) + ".yml");
                 final YamlConfiguration wcfg = YamlConfiguration.loadConfiguration(file);
-                if (wcfg.contains("logBlockCreations"))
-                    wcfg.set("logging.BLOCKPLACE", wcfg.getBoolean("logBlockCreations"));
-                if (wcfg.contains("logBlockDestroyings"))
-                    wcfg.set("logging.BLOCKBREAK", wcfg.getBoolean("logBlockDestroyings"));
-                if (wcfg.contains("logSignTexts"))
-                    wcfg.set("logging.SIGNTEXT", wcfg.getBoolean("logSignTexts"));
+                if (wcfg.contains("logBlockCreations")) wcfg.set("logging.BLOCKPLACE", wcfg.getBoolean("logBlockCreations"));
+                if (wcfg.contains("logBlockDestroyings")) wcfg.set("logging.BLOCKBREAK", wcfg.getBoolean("logBlockDestroyings"));
+                if (wcfg.contains("logSignTexts")) wcfg.set("logging.SIGNTEXT", wcfg.getBoolean("logSignTexts"));
                 if (wcfg.contains("logFire")) wcfg.set("logging.FIRE", wcfg.getBoolean("logFire"));
-                if (wcfg.contains("logLeavesDecay"))
-                    wcfg.set("logging.LEAVESDECAY", wcfg.getBoolean("logLeavesDecay"));
-                if (wcfg.contains("logLavaFlow"))
-                    wcfg.set("logging.LAVAFLOW", wcfg.getBoolean("logLavaFlow"));
-                if (wcfg.contains("logWaterFlow"))
-                    wcfg.set("logging.WATERFLOW", wcfg.getBoolean("logWaterFlow"));
-                if (wcfg.contains("logChestAccess"))
-                    wcfg.set("logging.CHESTACCESS", wcfg.getBoolean("logChestAccess"));
-                if (wcfg.contains("logButtonsAndLevers"))
-                    wcfg.set("logging.SWITCHINTERACT", wcfg.getBoolean("logButtonsAndLevers"));
+                if (wcfg.contains("logLeavesDecay")) wcfg.set("logging.LEAVESDECAY", wcfg.getBoolean("logLeavesDecay"));
+                if (wcfg.contains("logLavaFlow")) wcfg.set("logging.LAVAFLOW", wcfg.getBoolean("logLavaFlow"));
+                if (wcfg.contains("logWaterFlow")) wcfg.set("logging.WATERFLOW", wcfg.getBoolean("logWaterFlow"));
+                if (wcfg.contains("logChestAccess")) wcfg.set("logging.CHESTACCESS", wcfg.getBoolean("logChestAccess"));
+                if (wcfg.contains("logButtonsAndLevers")) wcfg.set("logging.SWITCHINTERACT", wcfg.getBoolean("logButtonsAndLevers"));
                 if (wcfg.contains("logKills")) wcfg.set("logging.KILL", wcfg.getBoolean("logKills"));
                 if (wcfg.contains("logChat")) wcfg.set("logging.CHAT", wcfg.getBoolean("logChat"));
-                if (wcfg.contains("logSnowForm"))
-                    wcfg.set("logging.SNOWFORM", wcfg.getBoolean("logSnowForm"));
-                if (wcfg.contains("logSnowFade"))
-                    wcfg.set("logging.SNOWFADE", wcfg.getBoolean("logSnowFade"));
-                if (wcfg.contains("logDoors"))
-                    wcfg.set("logging.DOORINTERACT", wcfg.getBoolean("logDoors"));
+                if (wcfg.contains("logSnowForm")) wcfg.set("logging.SNOWFORM", wcfg.getBoolean("logSnowForm"));
+                if (wcfg.contains("logSnowFade")) wcfg.set("logging.SNOWFADE", wcfg.getBoolean("logSnowFade"));
+                if (wcfg.contains("logDoors")) wcfg.set("logging.DOORINTERACT", wcfg.getBoolean("logDoors"));
                 if (wcfg.contains("logCakes")) wcfg.set("logging.CAKEEAT", wcfg.getBoolean("logCakes"));
-                if (wcfg.contains("logEndermen"))
-                    wcfg.set("logging.ENDERMEN", wcfg.getBoolean("logEndermen"));
+                if (wcfg.contains("logEndermen")) wcfg.set("logging.ENDERMEN", wcfg.getBoolean("logEndermen"));
                 if (wcfg.contains("logExplosions")) {
                     final boolean logExplosions = wcfg.getBoolean("logExplosions");
                     wcfg.set("logging.TNTEXPLOSION", logExplosions);
@@ -222,10 +195,7 @@ class Updater {
                 conn.setAutoCommit(true);
                 final Statement st = conn.createStatement();
                 for (final WorldConfig wcfg : getLoggedWorlds())
-                    if (wcfg.isLogging(Logging.KILL))
-                        st.execute("ALTER TABLE `"
-                                + wcfg.table
-                                + "-kills` ADD (x SMALLINT NOT NULL DEFAULT 0, y TINYINT UNSIGNED NOT NULL DEFAULT 0, z SMALLINT NOT NULL DEFAULT 0)");
+                    if (wcfg.isLogging(Logging.KILL)) st.execute("ALTER TABLE `" + wcfg.table + "-kills` ADD (x SMALLINT NOT NULL DEFAULT 0, y TINYINT UNSIGNED NOT NULL DEFAULT 0, z SMALLINT NOT NULL DEFAULT 0)");
                 st.close();
                 conn.close();
             } catch (final SQLException ex) {
@@ -240,8 +210,7 @@ class Updater {
             try {
                 conn.setAutoCommit(true);
                 final Statement st = conn.createStatement();
-                final ResultSet rs = st
-                        .executeQuery("SHOW COLUMNS FROM `lb-players` WHERE field = 'onlinetime'");
+                final ResultSet rs = st.executeQuery("SHOW COLUMNS FROM `lb-players` WHERE field = 'onlinetime'");
                 if (rs.next() && rs.getString("Type").equalsIgnoreCase("time")) {
                     st.execute("ALTER TABLE `lb-players` ADD onlinetime2 INT UNSIGNED NOT NULL");
                     st.execute("UPDATE `lb-players` SET onlinetime2 = HOUR(onlinetime) * 3600 + MINUTE(onlinetime) * 60 + SECOND(onlinetime)");

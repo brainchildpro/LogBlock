@@ -11,6 +11,21 @@ import org.bukkit.entity.Player;
 public class Session {
     private static final Map<String, Session> sessions = new HashMap<String, Session>();
 
+    public QueryParams lastQuery = null;
+
+    public LookupCacheElement[] lookupCache = null;
+
+    public int page = 1;
+
+    public Map<Tool, ToolData> toolData;
+
+    private Session(final Player player) {
+        this.toolData = new HashMap<Tool, ToolData>();
+        final LogBlock logblock = LogBlock.getInstance();
+        if (player != null) for (final Tool tool : toolsByType.values())
+            this.toolData.put(tool, new ToolData(tool, logblock, player));
+    }
+
     public static Session getSession(final CommandSender sender) {
         return getSession(sender.getName());
     }
@@ -30,20 +45,5 @@ public class Session {
 
     public static boolean hasSession(final String playerName) {
         return sessions.containsKey(playerName.toLowerCase());
-    }
-
-    public QueryParams lastQuery = null;
-
-    public LookupCacheElement[] lookupCache = null;
-
-    public int page = 1;
-
-    public Map<Tool, ToolData> toolData;
-
-    private Session(final Player player) {
-        this.toolData = new HashMap<Tool, ToolData>();
-        final LogBlock logblock = LogBlock.getInstance();
-        if (player != null) for (final Tool tool : toolsByType.values())
-            this.toolData.put(tool, new ToolData(tool, logblock, player));
     }
 }

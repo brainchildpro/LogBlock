@@ -29,23 +29,23 @@ import eu.icecraft_mc.rLog.rLog;
 public class LogBlock extends JavaPlugin {
     private static LogBlock logblock = null;
 
-    public static LogBlock getInstance() {
-        return logblock;
-    }
-
     public rLog fileLog = null;
 
     private MySQLConnectionPool pool;
+
     private Consumer consumer = null;
     private CommandsHandler commandsHandler;
     private Updater updater = null;
     private Timer timer = null;
     private PermissionHandler permissions = null;
     private long connectionLostThrottle = System.currentTimeMillis();
-
     private final Vector<Question> questions = new Vector<Question>();
 
     private boolean errorAtLoading = false, connected = true;
+
+    public static LogBlock getInstance() {
+        return logblock;
+    }
 
     public String ask(final Player respondent, final String questionMessage, final String... answers) {
         final Question question = new Question(respondent, questionMessage, answers);
@@ -128,8 +128,7 @@ public class LogBlock extends JavaPlugin {
     }
 
     public boolean hasPermission(final CommandSender sender, final String permission) {
-        if (permissions != null && sender instanceof Player)
-            return permissions.has((Player) sender, permission);
+        if (permissions != null && sender instanceof Player) return permissions.has((Player) sender, permission);
         return sender.hasPermission(permission);
     }
 
@@ -139,9 +138,8 @@ public class LogBlock extends JavaPlugin {
         getServer().getScheduler().cancelTasks(this);
         fileLog.uninit();
         if (consumer != null) {
-            if (logPlayerInfo && getServer().getOnlinePlayers() != null)
-                for (final Player player : getServer().getOnlinePlayers())
-                    consumer.queueLeave(player);
+            if (logPlayerInfo && getServer().getOnlinePlayers() != null) for (final Player player : getServer().getOnlinePlayers())
+                consumer.queueLeave(player);
             if (consumer.getQueueSize() > 0) {
                 getLogger().info("Waiting for consumer ...");
                 int tries = 10;
@@ -152,8 +150,7 @@ public class LogBlock extends JavaPlugin {
                         getServer().savePlayers();
                         for (World w : getServer().getWorlds())
                             w.save();
-                        getLogger().info(
-                                "Unable to save queue to database. Trying to write to a local file.");
+                        getLogger().info("Unable to save queue to database. Trying to write to a local file.");
                         try {
                             consumer.writeToFile();
                             getLogger().info("Successfully dumped queue. Disabling..");
@@ -181,45 +178,34 @@ public class LogBlock extends JavaPlugin {
             pm.disablePlugin(this);
             return;
         }
-        if (pm.getPlugin("WorldEdit") == null && !new File("lib/WorldEdit.jar").exists()
-                && !new File("WorldEdit.jar").exists())
-            try {
-                download(getLogger(), new URL("http://diddiz.insane-architects.net/download/WorldEdit.jar"),
-                        new File("lib/WorldEdit.jar"));
-                getLogger().info("You have to restart/reload your server now.");
-                pm.disablePlugin(this);
-                return;
-            } catch (final Exception ex) {
-                getLogger()
-                        .warning(
-                                "Failed to download WorldEdit. You may have to download it manually. You don't have to install it, just place the jar in the lib folder.");
-            }
+        if (pm.getPlugin("WorldEdit") == null && !new File("lib/WorldEdit.jar").exists() && !new File("WorldEdit.jar").exists()) try {
+            download(getLogger(), new URL("http://diddiz.insane-architects.net/download/WorldEdit.jar"), new File("lib/WorldEdit.jar"));
+            getLogger().info("You have to restart/reload your server now.");
+            pm.disablePlugin(this);
+            return;
+        } catch (final Exception ex) {
+            getLogger().warning("Failed to download WorldEdit. You may have to download it manually. You don't have to install it, just place the jar in the lib folder.");
+        }
         fileLog = new rLog("plugins/LogBlock", "lb.log", 10);
         getCommand("lb").setExecutor(commandsHandler = new CommandsHandler(this)); // Completely valid
         if (pm.getPlugin("Permissions") != null) {
             permissions = ((Permissions) pm.getPlugin("Permissions")).getHandler();
             getLogger().info("Permissions plugin found.");
         } else getLogger().info("Permissions plugin not found. Using Bukkit Permissions.");
-        if (enableAutoClearLog && autoClearLogDelay > 0)
-            getServer().getScheduler().scheduleAsyncRepeatingTask(this, new AutoClearLog(this), 6000,
-                    autoClearLogDelay * 60 * 20);
+        if (enableAutoClearLog && autoClearLogDelay > 0) getServer().getScheduler().scheduleAsyncRepeatingTask(this, new AutoClearLog(this), 6000, autoClearLogDelay * 60 * 20);
         getServer().getScheduler().scheduleAsyncDelayedTask(this, new DumpedLogImporter(this));
         registerEvents();
         if (useBukkitScheduler) {
-            if (getServer().getScheduler().scheduleAsyncRepeatingTask(this, consumer, delayBetweenRuns * 20,
-                    delayBetweenRuns * 20) > 0) getLogger()
-                    .info("Scheduled consumer with bukkit scheduler.");
+            if (getServer().getScheduler().scheduleAsyncRepeatingTask(this, consumer, delayBetweenRuns * 20, delayBetweenRuns * 20) > 0) getLogger().info("Scheduled consumer with bukkit scheduler.");
             else scheduleTimer();
         } else {
             scheduleTimer();
             getLogger().info("Scheduled consumer with timer.");
         }
         for (final Tool tool : toolsByType.values())
-            if (pm.getPermission("logblock.tools." + tool.name) == null)
-                pm.addPermission(new Permission("logblock.tools." + tool.name, tool.permissionDefault));
+            if (pm.getPermission("logblock.tools." + tool.name) == null) pm.addPermission(new Permission("logblock.tools." + tool.name, tool.permissionDefault));
         getServer().getPluginManager().registerEvents(new LogBlockQuestionerPlayerListener(questions), this);
-        getServer().getScheduler().scheduleSyncRepeatingTask(this, new QuestionsReaper(questions), 15000,
-                15000);
+        getServer().getScheduler().scheduleSyncRepeatingTask(this, new QuestionsReaper(questions), 15000, 15000);
         getLogger().info("LogBlock v" + getDescription().getVersion() + " by Ruan enabled.");
     }
 
@@ -250,18 +236,13 @@ public class LogBlock extends JavaPlugin {
     }
 
     public void sendPlayerConnectionLost(CommandSender sender) {
-        if (sender.isOp() || sender.hasPermission("logblock.*")) sender.sendMessage(ChatColor.RED
-                + "MySQL connection lost; please check if the MySQL server is up or try again later.");
-        else sender
-                .sendMessage(ChatColor.RED
-                        + "The server handling the database is currently experiencing issues. Please try again later. (LogBlock will still log data, don't worry)");
+        if (sender.isOp() || sender.hasPermission("logblock.*")) sender.sendMessage(ChatColor.RED + "MySQL connection lost; please check if the MySQL server is up or try again later.");
+        else sender.sendMessage(ChatColor.RED + "The server handling the database is currently experiencing issues. Please try again later. (LogBlock will still log data, don't worry)");
     }
 
     public void sendPlayerException(CommandSender sender, Exception e) {
-        if (sender.isOp() || sender.hasPermission("logblock.*")) sender.sendMessage(ChatColor.RED
-                + "An error has occurred. Please check the console.");
-        else sender.sendMessage(ChatColor.RED
-                + "An error has occurred. Please ask an administrator to check the console.");
+        if (sender.isOp() || sender.hasPermission("logblock.*")) sender.sendMessage(ChatColor.RED + "An error has occurred. Please check the console.");
+        else sender.sendMessage(ChatColor.RED + "An error has occurred. Please ask an administrator to check the console.");
         e.printStackTrace();
     }
 
@@ -279,31 +260,26 @@ public class LogBlock extends JavaPlugin {
         pm.registerEvents(new ToolListener(this), this);
         if (askRollbackAfterBan) pm.registerEvents(new BanListener(this), this);
         if (isLogging(Logging.BLOCKPLACE)) pm.registerEvents(new BlockPlaceLogging(this), this);
-        if (isLogging(Logging.BLOCKPLACE) || isLogging(Logging.LAVAFLOW) || isLogging(Logging.WATERFLOW))
-            pm.registerEvents(new FluidFlowLogging(this), this);
+        if (isLogging(Logging.BLOCKPLACE) || isLogging(Logging.LAVAFLOW) || isLogging(Logging.WATERFLOW)) pm.registerEvents(new FluidFlowLogging(this), this);
         if (isLogging(Logging.BLOCKBREAK)) pm.registerEvents(new BlockBreakLogging(this), this);
         if (isLogging(Logging.SIGNTEXT)) pm.registerEvents(new SignChangeLogging(this), this);
         if (isLogging(Logging.FIRE)) pm.registerEvents(new BlockBurnLogging(this), this);
         if (isLogging(Logging.SNOWFORM)) pm.registerEvents(new SnowFormLogging(this), this);
         if (isLogging(Logging.SNOWFADE)) pm.registerEvents(new SnowFadeLogging(this), this);
-        if (isLogging(Logging.CREEPEREXPLOSION) || isLogging(Logging.TNTEXPLOSION)
-                || isLogging(Logging.GHASTFIREBALLEXPLOSION) || isLogging(Logging.ENDERDRAGON)
-                || isLogging(Logging.MISCEXPLOSION)) pm.registerEvents(new ExplosionLogging(this), this);
+        if (isLogging(Logging.CREEPEREXPLOSION) || isLogging(Logging.TNTEXPLOSION) || isLogging(Logging.GHASTFIREBALLEXPLOSION) || isLogging(Logging.ENDERDRAGON) || isLogging(Logging.MISCEXPLOSION))
+            pm.registerEvents(new ExplosionLogging(this), this);
         if (isLogging(Logging.LEAVESDECAY)) pm.registerEvents(new LeavesDecayLogging(this), this);
         if (isLogging(Logging.CHESTACCESS)) {
             pm.registerEvents(new ChestAccessLogging(this), this);
             getLogger().info("[LogBlock] Using own chest access API");
         }
-        if (isLogging(Logging.SWITCHINTERACT) || isLogging(Logging.DOORINTERACT)
-                || isLogging(Logging.CAKEEAT) || isLogging(Logging.DIODEINTERACT)
-                || isLogging(Logging.NOTEBLOCKINTERACT)) pm.registerEvents(new InteractLogging(this), this);
+        if (isLogging(Logging.SWITCHINTERACT) || isLogging(Logging.DOORINTERACT) || isLogging(Logging.CAKEEAT) || isLogging(Logging.DIODEINTERACT) || isLogging(Logging.NOTEBLOCKINTERACT))
+            pm.registerEvents(new InteractLogging(this), this);
         if (isLogging(Logging.KILL)) pm.registerEvents(new KillLogging(this), this);
         if (isLogging(Logging.CHAT)) pm.registerEvents(new ChatLogging(this), this);
         if (isLogging(Logging.ENDERMEN)) pm.registerEvents(new EndermenLogging(this), this);
-        if (isLogging(Logging.NATURALSTRUCTUREGROW) || isLogging(Logging.BONEMEALSTRUCTUREGROW))
-            pm.registerEvents(new StructureGrowLogging(this), this);
-        if (isLogging(Logging.PISTONEXTEND) || isLogging(Logging.PISTONRETRACT))
-            pm.registerEvents(new PistonLogging(this), this);
+        if (isLogging(Logging.NATURALSTRUCTUREGROW) || isLogging(Logging.BONEMEALSTRUCTUREGROW)) pm.registerEvents(new StructureGrowLogging(this), this);
+        if (isLogging(Logging.PISTONEXTEND) || isLogging(Logging.PISTONRETRACT)) pm.registerEvents(new PistonLogging(this), this);
         if (logPlayerInfo) pm.registerEvents(new PlayerInfoLogging(this), this);
     }
 }

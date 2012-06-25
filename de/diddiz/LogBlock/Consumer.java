@@ -17,9 +17,25 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.*;
 
 public class Consumer extends TimerTask {
+    private final Queue<Row> queue = new LinkedBlockingQueue<Row>();
+
+    private final Set<String> failedPlayers = new HashSet<String>();
+
+    private final LogBlock logblock;
+
+    final Map<String, Integer> playerIds = new HashMap<String, Integer>();
+
+    private final Lock lock = new ReentrantLock();
+
+    Consumer(final LogBlock logblock) {
+        this.logblock = logblock;
+        try {
+            Class.forName("PlayerLeaveRow");
+        } catch (final ClassNotFoundException ex) {}
+    }
+
     private class BlockRow extends BlockChange implements Row {
-        public BlockRow(final Location loc, final String playerName, final int replaced, final int type,
-                final byte data, final String signtext, final ChestAccess ca) {
+        public BlockRow(final Location loc, final String playerName, final int replaced, final int type, final byte data, final String signtext, final ChestAccess ca) {
             super(System.currentTimeMillis() / 1000, loc, playerName, replaced, type, data, signtext, ca);
         }
 
@@ -27,16 +43,10 @@ public class Consumer extends TimerTask {
         public String[] getInserts() {
             final String table = getWorldConfig(loc.getWorld()).table;
             final String[] inserts = new String[ca != null || signtext != null ? 2 : 1];
-            inserts[0] = "INSERT INTO `" + table
-                    + "` (date, playerid, replaced, type, data, x, y, z) VALUES (FROM_UNIXTIME(" + date
-                    + "), " + playerID(playerName) + ", " + replaced + ", " + type + ", " + data + ", '"
+            inserts[0] = "INSERT INTO `" + table + "` (date, playerid, replaced, type, data, x, y, z) VALUES (FROM_UNIXTIME(" + date + "), " + playerID(playerName) + ", " + replaced + ", " + type + ", " + data + ", '"
                     + loc.getBlockX() + "', " + loc.getBlockY() + ", '" + loc.getBlockZ() + "');";
-            if (signtext != null) inserts[1] = "INSERT INTO `" + table
-                    + "-sign` (id, signtext) values (LAST_INSERT_ID(), '" + signtext + "');";
-            else if (ca != null)
-                inserts[1] = "INSERT INTO `" + table
-                        + "-chest` (id, itemtype, itemamount, itemdata) values (LAST_INSERT_ID(), "
-                        + ca.itemType + ", " + ca.itemAmount + ", " + ca.itemData + ");";
+            if (signtext != null) inserts[1] = "INSERT INTO `" + table + "-sign` (id, signtext) values (LAST_INSERT_ID(), '" + signtext + "');";
+            else if (ca != null) inserts[1] = "INSERT INTO `" + table + "-chest` (id, itemtype, itemamount, itemdata) values (LAST_INSERT_ID(), " + ca.itemType + ", " + ca.itemAmount + ", " + ca.itemData + ");";
             return inserts;
         }
 
@@ -53,8 +63,7 @@ public class Consumer extends TimerTask {
 
         @Override
         public String[] getInserts() {
-            return new String[] { "INSERT INTO `lb-chat` (date, playerid, message) VALUES (FROM_UNIXTIME("
-                    + date + "), " + playerID(playerName) + ", '" + message + "');" };
+            return new String[] { "INSERT INTO `lb-chat` (date, playerid, message) VALUES (FROM_UNIXTIME(" + date + "), " + playerID(playerName) + ", '" + message + "');" };
         }
 
         @Override
@@ -79,10 +88,8 @@ public class Consumer extends TimerTask {
 
         @Override
         public String[] getInserts() {
-            return new String[] { "INSERT INTO `" + getWorldConfig(loc.getWorld()).table
-                    + "-kills` (date, killer, victim, weapon, x, y, z) VALUES (FROM_UNIXTIME(" + date
-                    + "), " + playerID(killer) + ", " + playerID(victim) + ", " + weapon + ", "
-                    + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + ");" };
+            return new String[] { "INSERT INTO `" + getWorldConfig(loc.getWorld()).table + "-kills` (date, killer, victim, weapon, x, y, z) VALUES (FROM_UNIXTIME(" + date + "), " + playerID(killer) + ", " + playerID(victim)
+                    + ", " + weapon + ", " + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + ");" };
         }
 
         @Override
@@ -104,15 +111,8 @@ public class Consumer extends TimerTask {
 
         @Override
         public String[] getInserts() {
-            return new String[] { "UPDATE `lb-players` SET lastlogin = FROM_UNIXTIME("
-                    + lastLogin
-                    + "), firstlogin = IF(firstlogin = 0, FROM_UNIXTIME("
-                    + lastLogin
-                    + "), firstlogin), ip = '"
-                    + ip
-                    + "' WHERE "
-                    + (playerIds.containsKey(playerName) ? "playerid = " + playerIds.get(playerName)
-                            : "playerName = '" + playerName + "'") + ";" };
+            return new String[] { "UPDATE `lb-players` SET lastlogin = FROM_UNIXTIME(" + lastLogin + "), firstlogin = IF(firstlogin = 0, FROM_UNIXTIME(" + lastLogin + "), firstlogin), ip = '" + ip + "' WHERE "
+                    + (playerIds.containsKey(playerName) ? "playerid = " + playerIds.get(playerName) : "playerName = '" + playerName + "'") + ";" };
         }
 
         @Override
@@ -132,11 +132,8 @@ public class Consumer extends TimerTask {
 
         @Override
         public String[] getInserts() {
-            return new String[] { "UPDATE `lb-players` SET onlinetime = onlinetime + TIMESTAMPDIFF(SECOND, lastlogin, FROM_UNIXTIME('"
-                    + leaveTime
-                    + "')) WHERE lastlogin > 0 && "
-                    + (playerIds.containsKey(playerName) ? "playerid = " + playerIds.get(playerName)
-                            : "playerName = '" + playerName + "'") + ";" };
+            return new String[] { "UPDATE `lb-players` SET onlinetime = onlinetime + TIMESTAMPDIFF(SECOND, lastlogin, FROM_UNIXTIME('" + leaveTime + "')) WHERE lastlogin > 0 && "
+                    + (playerIds.containsKey(playerName) ? "playerid = " + playerIds.get(playerName) : "playerName = '" + playerName + "'") + ";" };
         }
 
         @Override
@@ -161,29 +158,11 @@ public class Consumer extends TimerTask {
         return true;
     }
 
-    private final Queue<Row> queue = new LinkedBlockingQueue<Row>();
-
-    private final Set<String> failedPlayers = new HashSet<String>();
-
-    private final LogBlock logblock;
-
-    final Map<String, Integer> playerIds = new HashMap<String, Integer>();
-
-    private final Lock lock = new ReentrantLock();
-
-    Consumer(final LogBlock logblock) {
-        this.logblock = logblock;
-        try {
-            Class.forName("PlayerLeaveRow");
-        } catch (final ClassNotFoundException ex) {}
-    }
-
     /**
      * Logs any block change. Don't try to combine broken and placed blocks. Queue two block changes or use the
      * queueBLockReplace methods.
      */
-    public void queueBlock(final String playerName, final Location loc, final int typeBefore,
-            final int typeAfter, final byte data) {
+    public void queueBlock(final String playerName, final Location loc, final int typeBefore, final int typeAfter, final byte data) {
         queueBlock(playerName, loc, typeBefore, typeAfter, data, null, null);
     }
 
@@ -200,8 +179,7 @@ public class Consumer extends TimerTask {
     /**
      * Logs a block break. The block type afterwards is assumed to be o (air).
      */
-    public void queueBlockBreak(final String playerName, final Location loc, final int typeBefore,
-            final byte dataBefore) {
+    public void queueBlockBreak(final String playerName, final Location loc, final int typeBefore, final byte dataBefore) {
         queueBlock(playerName, loc, typeBefore, 0, dataBefore);
     }
 
@@ -229,8 +207,7 @@ public class Consumer extends TimerTask {
      *            Blockstate of the block after actually being placed.
      */
     public void queueBlockReplace(String playerName, BlockState before, BlockState after) {
-        queueBlockReplace(playerName, before.getLocation(), before.getTypeId(), before.getRawData(),
-                after.getTypeId(), after.getRawData());
+        queueBlockReplace(playerName, before.getLocation(), before.getTypeId(), before.getRawData(), after.getTypeId(), after.getRawData());
     }
 
     /**
@@ -238,8 +215,7 @@ public class Consumer extends TimerTask {
      *            Blockstate of the block before actually being destroyed.
      */
     public void queueBlockReplace(String playerName, BlockState before, int typeAfter, byte dataAfter) {
-        queueBlockReplace(playerName, before.getLocation(), before.getTypeId(), before.getRawData(),
-                typeAfter, dataAfter);
+        queueBlockReplace(playerName, before.getLocation(), before.getTypeId(), before.getRawData(), typeAfter, dataAfter);
     }
 
     /**
@@ -247,14 +223,11 @@ public class Consumer extends TimerTask {
      *            Blockstate of the block after actually being placed.
      */
     public void queueBlockReplace(String playerName, int typeBefore, byte dataBefore, BlockState after) {
-        queueBlockReplace(playerName, after.getLocation(), typeBefore, dataBefore, after.getTypeId(),
-                after.getRawData());
+        queueBlockReplace(playerName, after.getLocation(), typeBefore, dataBefore, after.getTypeId(), after.getRawData());
     }
 
-    public void queueBlockReplace(final String playerName, final Location loc, final int typeBefore,
-            final byte dataBefore, final int typeAfter, final byte dataAfter) {
-        if (dataBefore == 0 && typeBefore != typeAfter) queueBlock(playerName, loc, typeBefore, typeAfter,
-                dataAfter);
+    public void queueBlockReplace(final String playerName, final Location loc, final int typeBefore, final byte dataBefore, final int typeAfter, final byte dataAfter) {
+        if (dataBefore == 0 && typeBefore != typeAfter) queueBlock(playerName, loc, typeBefore, typeAfter, dataAfter);
         else {
             queueBlockBreak(playerName, loc, typeBefore, dataBefore);
             queueBlockPlace(playerName, loc, typeAfter, dataAfter);
@@ -269,21 +242,17 @@ public class Consumer extends TimerTask {
      * @param container
      *            The respective container. Must be an instance of Chest, Dispencer or Furnace.
      */
-    public void queueChestAccess(final String playerName, final BlockState container, final short itemType,
-            final short itemAmount, final byte itemData) {
+    public void queueChestAccess(final String playerName, final BlockState container, final short itemType, final short itemAmount, final byte itemData) {
         if (!(container instanceof InventoryHolder)) return;
-        queueChestAccess(playerName, container.getLocation(), container.getTypeId(), itemType, itemAmount,
-                itemData);
+        queueChestAccess(playerName, container.getLocation(), container.getTypeId(), itemType, itemAmount, itemData);
     }
 
     /**
      * @param type
      *            Type id of the container. Must be 63 or 68.
      */
-    public void queueChestAccess(final String playerName, final Location loc, final int type,
-            final short itemType, final short itemAmount, final byte itemData) {
-        queueBlock(playerName, loc, type, type, (byte) 0, null, new ChestAccess(itemType, itemAmount,
-                itemData));
+    public void queueChestAccess(final String playerName, final Location loc, final int type, final short itemType, final short itemAmount, final byte itemData) {
+        queueBlock(playerName, loc, type, type, (byte) 0, null, new ChestAccess(itemType, itemAmount, itemData));
     }
 
     /**
@@ -294,19 +263,16 @@ public class Consumer extends TimerTask {
      */
     public void queueContainerBreak(final String playerName, final BlockState container) {
         if (!(container instanceof InventoryHolder)) return;
-        queueContainerBreak(playerName, container.getLocation(), container.getTypeId(),
-                container.getRawData(), ((InventoryHolder) container).getInventory());
+        queueContainerBreak(playerName, container.getLocation(), container.getTypeId(), container.getRawData(), ((InventoryHolder) container).getInventory());
     }
 
     /**
      * Logs a container block break. The block type before is assumed to be o (air). All content is assumed to be taken.
      */
-    public void queueContainerBreak(final String playerName, final Location loc, final int type,
-            final byte data, final Inventory inv) {
+    public void queueContainerBreak(final String playerName, final Location loc, final int type, final byte data, final Inventory inv) {
         final ItemStack[] items = compressInventory(inv.getContents());
         for (final ItemStack item : items)
-            queueChestAccess(playerName, loc, type, (short) item.getTypeId(),
-                    (short) (item.getAmount() * -1), rawData(item));
+            queueChestAccess(playerName, loc, type, (short) item.getTypeId(), (short) (item.getAmount() * -1), rawData(item));
         queueBlockBreak(playerName, loc, type, data);
     }
 
@@ -323,8 +289,7 @@ public class Consumer extends TimerTask {
     public void queueKill(final Entity killer, final Entity victim) {
         if (killer == null || victim == null) return;
         int weapon = 0;
-        if (killer instanceof Player && ((Player) killer).getItemInHand() != null)
-            weapon = ((Player) killer).getItemInHand().getTypeId();
+        if (killer instanceof Player && ((Player) killer).getItemInHand() != null) weapon = ((Player) killer).getItemInHand().getTypeId();
         queueKill(victim.getLocation(), entityName(killer), entityName(victim), weapon);
     }
 
@@ -338,11 +303,9 @@ public class Consumer extends TimerTask {
      * @param weapon
      *            Item id of the weapon. 0 for no weapon.
      */
-    public void queueKill(final Location location, final String killerName, final String victimName,
-            final int weapon) {
+    public void queueKill(final Location location, final String killerName, final String victimName, final int weapon) {
         if (victimName == null || !isLogged(location.getWorld())) return;
-        addToQueue(new KillRow(location, killerName == null ? null : killerName.replaceAll("[^a-zA-Z0-9_]",
-                ""), victimName.replaceAll("[^a-zA-Z0-9_]", ""), weapon));
+        addToQueue(new KillRow(location, killerName == null ? null : killerName.replaceAll("[^a-zA-Z0-9_]", ""), victimName.replaceAll("[^a-zA-Z0-9_]", ""), weapon));
     }
 
     public void queueLeave(final Player player) {
@@ -355,11 +318,9 @@ public class Consumer extends TimerTask {
      * @param lines
      *            The four lines on the sign.
      */
-    public void queueSignBreak(final String playerName, final Location loc, final int type, final byte data,
-            final String[] lines) {
+    public void queueSignBreak(final String playerName, final Location loc, final int type, final byte data, final String[] lines) {
         if (type != 63 && type != 68 || lines == null || lines.length != 4) return;
-        queueBlock(playerName, loc, type, 0, data, lines[0] + "\0" + lines[1] + "\0" + lines[2] + "\0"
-                + lines[3], null);
+        queueBlock(playerName, loc, type, 0, data, lines[0] + "\0" + lines[1] + "\0" + lines[2] + "\0" + lines[3], null);
     }
 
     public void queueSignBreak(final String playerName, final Sign sign) {
@@ -372,11 +333,9 @@ public class Consumer extends TimerTask {
      * @param lines
      *            The four lines on the sign.
      */
-    public void queueSignPlace(final String playerName, final Location loc, final int type, final byte data,
-            final String[] lines) {
+    public void queueSignPlace(final String playerName, final Location loc, final int type, final byte data, final String[] lines) {
         if (type != 63 && type != 68 || lines == null || lines.length != 4) return;
-        queueBlock(playerName, loc, 0, type, data, lines[0] + "\0" + lines[1] + "\0" + lines[2] + "\0"
-                + lines[3], null);
+        queueBlock(playerName, loc, 0, type, data, lines[0] + "\0" + lines[1] + "\0" + lines[2] + "\0" + lines[3], null);
     }
 
     public void queueSignPlace(final String playerName, final Sign sign) {
@@ -388,8 +347,7 @@ public class Consumer extends TimerTask {
         if (queue.isEmpty() || !lock.tryLock()) return;
         final Connection conn = logblock.getConnection();
         Statement state = null;
-        if (getQueueSize() > 1000)
-            getLogger().info("[LogBlock Consumer] Queue overloaded. Size: " + getQueueSize());
+        if (getQueueSize() > 1000) getLogger().info("[LogBlock Consumer] Queue overloaded. Size: " + getQueueSize());
         if (getQueueSize() >= dropQueueAfter) dropQueue();
         try {
             if (conn == null) return;
@@ -397,8 +355,7 @@ public class Consumer extends TimerTask {
             state = conn.createStatement();
             final long start = System.currentTimeMillis();
             int count = 0;
-            process: while (!queue.isEmpty()
-                    && (System.currentTimeMillis() - start < timePerRun || count < forceToProcessAtLeast)) {
+            process: while (!queue.isEmpty() && (System.currentTimeMillis() - start < timePerRun || count < forceToProcessAtLeast)) {
                 final Row r = queue.poll();
                 if (r == null) continue;
                 for (final String player : r.getPlayers())
@@ -413,8 +370,7 @@ public class Consumer extends TimerTask {
                     try {
                         state.execute(insert);
                     } catch (final SQLException ex) {
-                        getLogger().log(Level.SEVERE,
-                                "[LogBlock Consumer] SQL exception on " + insert + ": ", ex);
+                        getLogger().log(Level.SEVERE, "[LogBlock Consumer] SQL exception on " + insert + ": ", ex);
                         break process;
                     }
                 count++;
@@ -452,8 +408,7 @@ public class Consumer extends TimerTask {
             counter++;
             if (counter % 1000 == 0) {
                 writer.close();
-                writer = new PrintWriter(new File("plugins/LogBlock/import/queue-" + time + "-" + counter
-                        / 1000 + ".sql"));
+                writer = new PrintWriter(new File("plugins/LogBlock/import/queue-" + time + "-" + counter / 1000 + ".sql"));
             }
         }
         writer.close();
@@ -472,8 +427,7 @@ public class Consumer extends TimerTask {
 
     private boolean addPlayer(final Statement state, final String playerName) throws SQLException {
         state.execute("INSERT IGNORE INTO `lb-players` (playername) VALUES ('" + playerName + "')");
-        final ResultSet rs = state.executeQuery("SELECT playerid FROM `lb-players` WHERE playername = '"
-                + playerName + "'");
+        final ResultSet rs = state.executeQuery("SELECT playerid FROM `lb-players` WHERE playername = '" + playerName + "'");
         if (rs.next()) playerIds.put(playerName, rs.getInt(1));
         rs.close();
         return playerIds.containsKey(playerName);
@@ -493,13 +447,9 @@ public class Consumer extends TimerTask {
         }
     }
 
-    private void queueBlock(final String playerName, final Location loc, final int typeBefore,
-            final int typeAfter, final byte data, final String signtext, final ChestAccess ca) {
-        if (playerName == null || loc == null || typeBefore < 0 || typeAfter < 0 || typeBefore > 255
-                || typeAfter > 255 || hiddenPlayers.contains(playerName) || !isLogged(loc.getWorld())
-                || typeBefore != typeAfter && hiddenBlocks.contains(typeBefore)
-                && hiddenBlocks.contains(typeAfter)) return;
-        addToQueue(new BlockRow(loc, playerName.replaceAll("[^a-zA-Z0-9_]", ""), typeBefore, typeAfter,
-                data, signtext != null ? signtext.replace("\\", "\\\\").replace("'", "\\'") : null, ca));
+    private void queueBlock(final String playerName, final Location loc, final int typeBefore, final int typeAfter, final byte data, final String signtext, final ChestAccess ca) {
+        if (playerName == null || loc == null || typeBefore < 0 || typeAfter < 0 || typeBefore > 255 || typeAfter > 255 || hiddenPlayers.contains(playerName) || !isLogged(loc.getWorld()) || typeBefore != typeAfter
+                && hiddenBlocks.contains(typeBefore) && hiddenBlocks.contains(typeAfter)) return;
+        addToQueue(new BlockRow(loc, playerName.replaceAll("[^a-zA-Z0-9_]", ""), typeBefore, typeAfter, data, signtext != null ? signtext.replace("\\", "\\\\").replace("'", "\\'") : null, ca));
     }
 }

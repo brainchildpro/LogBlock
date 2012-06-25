@@ -29,8 +29,7 @@ public class PistonLogging extends LoggingListener {
                 final BlockState toBlock = pushed.getRelative(direction).getState();
 
                 consumer.queueBlockBreak("Piston", fromBlock);
-                if (pushed.getPistonMoveReaction() == PistonMoveReaction.MOVE)
-                    consumer.queueBlockReplace("Piston", toBlock, fromBlock);
+                if (pushed.getPistonMoveReaction() == PistonMoveReaction.MOVE) consumer.queueBlockReplace("Piston", toBlock, fromBlock);
             }
         }
     }
@@ -47,8 +46,7 @@ public class PistonLogging extends LoggingListener {
             final BlockState fromBlock = b.getState();
             final BlockState toBlock = b.getRelative(direction.getOppositeFace()).getState();
             consumer.queueBlockBreak("Piston", fromBlock);
-            consumer.queueBlockPlace("Piston", toBlock.getLocation(), fromBlock.getTypeId(),
-                    fromBlock.getRawData());
+            consumer.queueBlockPlace("Piston", toBlock.getLocation(), fromBlock.getTypeId(), fromBlock.getRawData());
         }
     }
 

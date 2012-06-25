@@ -11,19 +11,6 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.*;
 
 public class BukkitUtils {
-    public static class ItemStackComparator implements Comparator<ItemStack> {
-        @Override
-        public int compare(final ItemStack a, final ItemStack b) {
-            final int aType = a.getTypeId(), bType = b.getTypeId();
-            if (aType < bType) return -1;
-            if (aType > bType) return 1;
-            final byte aData = rawData(a), bData = rawData(b);
-            if (aData < bData) return -1;
-            if (aData > bData) return 1;
-            return 0;
-        }
-    }
-
     private static final Set<Set<Integer>> blockEquivalents;
 
     static {
@@ -35,6 +22,19 @@ public class BukkitUtils {
         blockEquivalents.add(new HashSet<Integer>(Arrays.asList(73, 74)));
         blockEquivalents.add(new HashSet<Integer>(Arrays.asList(75, 76)));
         blockEquivalents.add(new HashSet<Integer>(Arrays.asList(93, 94)));
+    }
+
+    public static class ItemStackComparator implements Comparator<ItemStack> {
+        @Override
+        public int compare(final ItemStack a, final ItemStack b) {
+            final int aType = a.getTypeId(), bType = b.getTypeId();
+            if (aType < bType) return -1;
+            if (aType > bType) return 1;
+            final byte aData = rawData(a), bData = rawData(b);
+            if (aData < bData) return -1;
+            if (aData > bData) return 1;
+            return 0;
+        }
     }
 
     public static ItemStack[] compareInventories(final ItemStack[] items1, final ItemStack[] items2) {
@@ -117,13 +117,11 @@ public class BukkitUtils {
 
     public static void giveTool(final Player player, final int type) {
         final Inventory inv = player.getInventory();
-        if (inv.contains(type))
-            player.sendMessage(ChatColor.RED + "You have already a " + materialName(type));
+        if (inv.contains(type)) player.sendMessage(ChatColor.RED + "You have already a " + materialName(type));
         else {
             final int free = inv.firstEmpty();
             if (free >= 0) {
-                if (player.getItemInHand() != null && player.getItemInHand().getTypeId() != 0)
-                    inv.setItem(free, player.getItemInHand());
+                if (player.getItemInHand() != null && player.getItemInHand().getTypeId() != 0) inv.setItem(free, player.getItemInHand());
                 player.setItemInHand(new ItemStack(type, 1));
                 player.sendMessage(ChatColor.GREEN + "Here's your " + materialName(type));
             } else player.sendMessage(ChatColor.RED + "You have no empty slot in your inventory");

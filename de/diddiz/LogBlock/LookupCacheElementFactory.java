@@ -2,9 +2,8 @@ package de.diddiz.LogBlock;
 
 import java.sql.*;
 
-import de.diddiz.LogBlock.QueryParams.*;
-
-
+import de.diddiz.LogBlock.QueryParams.BlockChangeType;
+import de.diddiz.LogBlock.QueryParams.SummarizationMode;
 
 public class LookupCacheElementFactory {
     private final QueryParams params;
