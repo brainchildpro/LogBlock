@@ -26,19 +26,31 @@ public class BlockPlaceLogging extends LoggingListener {
         final WorldConfig wcfg = getWorldConfig(b.getWorld());
         if (wcfg != null && wcfg.isLogging(Logging.BLOCKPLACE)) {
             final int placedType = b.getTypeId();
-            BlockState before = event.getBlockReplacedState();
+            BlockState before_dyn = event.getBlockReplacedState();
+            final BlockState before = event.getBlockReplacedState();
             final BlockState after = event.getBlockPlaced().getState();
             final boolean placed = before.getTypeId() == 0;
             final ItemStack inHand = event.getItemInHand();
-            final int handTypeId = inHand.getTypeId();
+            final int type = inHand.getTypeId();
+            final String name = event.getPlayer().getName();
             if (placedType == 0 && inHand != null) {
-                if (handTypeId == 51) return;
+                if (type == 51) return;
                 after.setTypeId(inHand.getTypeId());
                 after.setData(new MaterialData(inHand.getTypeId()));
             }
+            // Delay queueing of stairs and blocks by 1 tick to allow the raw data to update
+            if (type == 53 || type == 67 || type == 108 || type == 109 || type == 114 || type == 128 || type == 134 || type == 135 || type == 136 || type == 26) {
+                Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(LogBlock.getInstance(), new Runnable() {
+                    @Override
+                    public void run() {
+                        if (before.getTypeId() == 0) consumer.queueBlockPlace(name, after);
+                        else consumer.queueBlockReplace(name, before, after);
+                    }
+                }, 1L);
+                return;
+            }
             if (wcfg.isLogging(Logging.SIGNTEXT) && (placedType == 63 || placedType == 68)) return;
-            final String name = event.getPlayer().getName();
-            if (handTypeId == 12 || handTypeId == 13) { // sand/gravel physics
+            if (type == 12 || type == 13) { // sand/gravel physics
                 final World w = b.getWorld();
                 for (int y = before.getY() - 1; y > 0; y--) {
                     final Block down = w.getBlockAt(b.getX(), y, b.getZ());
@@ -57,12 +69,12 @@ public class BlockPlaceLogging extends LoggingListener {
                     }
                     if (id == 0) continue;
                     if ((down.isLiquid() || id == 31 || id == 106) && !down1.isLiquid() && id1 != 106) consumer.queueBlockReplace(name, down.getState(), after);
-                    before = w.getBlockAt(b.getX(), y + 1, b.getZ()).getState();
+                    before_dyn = w.getBlockAt(b.getX(), y + 1, b.getZ()).getState();
                     break;
                 }
             }
-            if (placed) consumer.queueBlockPlace(name, before.getLocation(), after.getTypeId(), after.getRawData());
-            else consumer.queueBlockReplace(name, before, after);
+            if (placed) consumer.queueBlockPlace(name, before_dyn.getLocation(), after.getTypeId(), after.getRawData());
+            else consumer.queueBlockReplace(name, before_dyn, after);
         }
     }
 

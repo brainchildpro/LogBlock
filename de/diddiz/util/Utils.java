@@ -12,17 +12,17 @@ public class Utils {
     public static class ExtensionFilenameFilter implements FilenameFilter {
         private final String ext;
 
-        public ExtensionFilenameFilter(final String ext) {
+        public ExtensionFilenameFilter(String ext) {
             this.ext = ext;
         }
 
         @Override
-        public boolean accept(final File dir, final String name) {
-            return name.toLowerCase().endsWith(this.ext);
+        public boolean accept(File dir, String name) {
+            return name.toLowerCase().endsWith(ext);
         }
     }
 
-    public static void download(final Logger log, final URL url, final File file) throws IOException {
+    public static void download(Logger log, URL url, File file) throws IOException {
         if (!file.getParentFile().exists()) file.getParentFile().mkdir();
         if (file.exists()) file.delete();
         file.createNewFile();
@@ -46,7 +46,7 @@ public class Utils {
         log.info("Download finished");
     }
 
-    public static boolean isByte(final String str) {
+    public static boolean isByte(String str) {
         try {
             Byte.parseByte(str);
             return true;
@@ -54,7 +54,7 @@ public class Utils {
         return false;
     }
 
-    public static boolean isInt(final String str) {
+    public static boolean isInt(String str) {
         try {
             Integer.parseInt(str);
             return true;
@@ -62,7 +62,7 @@ public class Utils {
         return false;
     }
 
-    public static String join(final String[] s, final String delimiter) {
+    public static String join(String[] s, String delimiter) {
         if (s == null || s.length == 0) return "";
         final int len = s.length;
         final StringBuffer buffer = new StringBuffer(s[0]);
@@ -71,29 +71,29 @@ public class Utils {
         return buffer.toString();
     }
 
-    public static String listing(final List<?> entries, final String delimiter, final String finalDelimiter) {
+    public static String listing(List<?> entries, String delimiter, String finalDelimiter) {
         final int len = entries.size();
         if (len == 0) return "";
         if (len == 1) return entries.get(0).toString();
         final StringBuilder builder = new StringBuilder(entries.get(0).toString());
         for (int i = 1; i < len - 1; i++)
-            builder.append(delimiter + entries.get(i).toString());
-        builder.append(finalDelimiter + entries.get(len - 1).toString());
+            builder.append(delimiter).append(entries.get(i).toString());
+        builder.append(finalDelimiter).append(entries.get(len - 1).toString());
         return builder.toString();
     }
 
-    public static String listing(final String[] entries, final String delimiter, final String finalDelimiter) {
+    public static String listing(String[] entries, String delimiter, String finalDelimiter) {
         final int len = entries.length;
         if (len == 0) return "";
         if (len == 1) return entries[0];
         final StringBuilder builder = new StringBuilder(entries[0]);
         for (int i = 1; i < len - 1; i++)
-            builder.append(delimiter + entries[i]);
-        builder.append(finalDelimiter + entries[len - 1]);
+            builder.append(delimiter).append(entries[i]);
+        builder.append(finalDelimiter).append(entries[len - 1]);
         return builder.toString();
     }
 
-    public static int parseTimeSpec(final String[] spec) {
+    public static int parseTimeSpec(String[] spec) {
         if (spec == null || spec.length < 1 || spec.length > 2) return -1;
         if (spec.length == 1 && isInt(spec[0])) return Integer.valueOf(spec[0]);
         if (!spec[0].contains(":") && !spec[0].contains(".")) if (spec.length == 2) {
@@ -132,7 +132,7 @@ public class Utils {
         }
     }
 
-    public static String readURL(final URL url) throws IOException {
+    public static String readURL(URL url) throws IOException {
         final StringBuilder content = new StringBuilder();
         final BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
         String inputLine;
@@ -142,7 +142,7 @@ public class Utils {
         return content.toString();
     }
 
-    public static String spaces(final int count) {
+    public static String spaces(int count) {
         final StringBuilder filled = new StringBuilder(count);
         for (int i = 0; i < count; i++)
             filled.append(' ');

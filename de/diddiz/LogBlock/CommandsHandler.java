@@ -172,8 +172,8 @@ public class CommandsHandler implements CommandExecutor {
                     this.params.needType = true;
                     this.params.needData = true;
                     this.params.needPlayer = true;
-                    if (this.params.types.size() == 0 || this.params.types.contains(63) || this.params.types.contains(68)) this.params.needSignText = true;
-                    if (this.params.bct == BlockChangeType.CHESTACCESS || this.params.types.size() == 0 || this.params.types.contains(23) || this.params.types.contains(54) || this.params.types.contains(61)
+                    if (this.params.types.isEmpty() || this.params.types.contains(63) || this.params.types.contains(68)) this.params.needSignText = true;
+                    if (this.params.bct == BlockChangeType.CHESTACCESS || this.params.types.isEmpty() || this.params.types.contains(23) || this.params.types.contains(54) || this.params.types.contains(61)
                             || this.params.types.contains(62)) this.params.needChestAccess = true;
                 }
                 conn = CommandsHandler.this.logblock.getConnection();
@@ -433,8 +433,8 @@ public class CommandsHandler implements CommandExecutor {
                     this.params.needType = true;
                     this.params.needData = true;
                     this.params.needPlayer = true;
-                    if (this.params.types.size() == 0 || this.params.types.contains(63) || this.params.types.contains(68)) this.params.needSignText = true;
-                    if (this.params.types.size() == 0 || this.params.types.contains(23) || this.params.types.contains(54) || this.params.types.contains(61) || this.params.types.contains(62)) this.params.needChestAccess = true;
+                    if (this.params.types.isEmpty() || this.params.types.contains(63) || this.params.types.contains(68)) this.params.needSignText = true;
+                    if (this.params.types.isEmpty() || this.params.types.contains(23) || this.params.types.contains(54) || this.params.types.contains(61) || this.params.types.contains(62)) this.params.needChestAccess = true;
                 }
                 conn = CommandsHandler.this.logblock.getConnection();
                 if (conn == null) {

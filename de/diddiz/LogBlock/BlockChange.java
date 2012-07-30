@@ -55,27 +55,27 @@ public class BlockChange implements LookupCacheElement {
     public String toString() {
         if ((this.type == 23 || this.type == 54 || this.type == 61 || this.type == 62 || this.type == 117) && this.ca == null && this.replaced != 0) return "";
         final StringBuilder msg = new StringBuilder();
-        if (this.date > 0) msg.append(formatter.format(this.date) + " ");
-        if (this.playerName != null) msg.append(this.playerName + " ");
+        if (this.date > 0) msg.append(formatter.format(this.date)).append(" ");
+        if (this.playerName != null) msg.append(this.playerName).append(" ");
         if (this.signtext != null) {
             final String action = this.type == 0 ? "destroyed " : "created ";
-            if (!this.signtext.contains("\0")) msg.append(action + this.signtext);
-            else msg.append(action + materialName(this.type != 0 ? this.type : this.replaced) + " [" + this.signtext.replace("\0", "] [") + "]");
+            if (!this.signtext.contains("\0")) msg.append(action).append(this.signtext);
+            else msg.append(action).append(materialName(this.type != 0 ? this.type : this.replaced)).append(" [").append(this.signtext.replace("\0", "] [")).append("]");
         } else if (this.type == this.replaced) {
             if (this.type == 0) msg.append("did an unspecified action");
             else if (this.ca != null) {
-                if (this.ca.itemType == 0 || this.ca.itemAmount == 0) msg.append("looked inside " + materialName(this.type));
-                else if (this.ca.itemAmount < 0) msg.append("took " + -this.ca.itemAmount + "x " + materialName(this.ca.itemType, this.ca.itemData));
-                else msg.append("put in " + this.ca.itemAmount + "x " + materialName(this.ca.itemType, this.ca.itemData));
-            } else if (this.type == 64 || this.type == 71 || this.type == 96 || this.type == 107) msg.append((this.data == 0 ? "opened" : "closed") + " " + materialName(this.type));
-            else if (this.type == 69) msg.append("switched " + materialName(this.type));
-            else if (this.type == 77) msg.append("pressed " + materialName(this.type));
-            else if (this.type == 92) msg.append("ate a piece of " + materialName(this.type));
-            else if (this.type == 25 || this.type == 93 || this.type == 94) msg.append("changed " + materialName(this.type));
-        } else if (this.type == 0) msg.append("destroyed " + materialName(this.replaced, this.data));
-        else if (this.replaced == 0) msg.append("created " + materialName(this.type, this.data));
-        else msg.append("replaced " + materialName(this.replaced, (byte) 0) + " with " + materialName(this.type, this.data));
-        if (this.loc != null) msg.append(" at " + this.loc.getBlockX() + ":" + this.loc.getBlockY() + ":" + this.loc.getBlockZ());
+                if (this.ca.itemType == 0 || this.ca.itemAmount == 0) msg.append("looked inside ").append(materialName(this.type));
+                else if (this.ca.itemAmount < 0) msg.append("took ").append(-this.ca.itemAmount).append("x ").append(materialName(this.ca.itemType, this.ca.itemData));
+                else msg.append("put in ").append(this.ca.itemAmount).append("x ").append(materialName(this.ca.itemType, this.ca.itemData));
+            } else if (this.type == 64 || this.type == 71 || this.type == 96 || this.type == 107) msg.append(this.data == 0 ? "opened" : "closed").append(" ").append(materialName(this.type));
+            else if (this.type == 69) msg.append("switched ").append(materialName(this.type));
+            else if (this.type == 77) msg.append("pressed ").append(materialName(this.type));
+            else if (this.type == 92) msg.append("ate a piece of ").append(materialName(this.type));
+            else if (this.type == 25 || this.type == 93 || this.type == 94) msg.append("changed ").append(materialName(this.type));
+        } else if (this.type == 0) msg.append("destroyed ").append(materialName(this.replaced, this.data));
+        else if (this.replaced == 0) msg.append("created ").append(materialName(this.type, this.data));
+        else msg.append("replaced ").append(materialName(this.replaced, (byte) 0)).append(" with ").append(materialName(this.type, this.data));
+        if (this.loc != null) msg.append(" at ").append(this.loc.getBlockX()).append(":").append(this.loc.getBlockY()).append(":").append(this.loc.getBlockZ());
         return msg.toString();
     }
 }

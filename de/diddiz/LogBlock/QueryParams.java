@@ -137,27 +137,28 @@ public class QueryParams implements Cloneable {
                 final String[] blocknames = new String[this.types.size()];
                 for (int i = 0; i < this.types.size(); i++)
                     blocknames[i] = materialName(this.types.get(i));
-                title.append(listing(blocknames, ", ", " and ") + " ");
+                title.append(listing(blocknames, ", ", " and ")).append(" ");
             } else title.append("block ");
             if (this.bct == BlockChangeType.CREATED) title.append("creations ");
             else if (this.bct == BlockChangeType.DESTROYED) title.append("destructions ");
             else title.append("changes ");
         }
-        if (this.players.size() > 10) title.append((this.excludePlayersMode ? "without" : "from") + " many players ");
+        if (this.players.size() > 10) title.append(this.excludePlayersMode ? "without" : "from").append(" many players ");
         else if (!this.players.isEmpty())
-            title.append((this.excludePlayersMode ? "without" : "from") + " player" + (this.players.size() != 1 ? "s" : "") + " " + listing(this.players.toArray(new String[this.players.size()]), ", ", " and ") + " ");
-        if (this.match != null && this.match.length() > 0) title.append("matching '" + this.match + "' ");
-        if (this.before > 0 && this.since > 0) title.append("between " + this.since + " and " + this.before + " minutes ago ");
-        else if (this.since > 0) title.append("in the last " + this.since + " minutes ");
-        else if (this.before > 0) title.append("more than " + this.before * -1 + " minutes ago ");
+            title.append(this.excludePlayersMode ? "without" : "from").append(" player").append(this.players.size() != 1 ? "s" : "").append(" ")
+                    .append(listing(this.players.toArray(new String[this.players.size()]), ", ", " and ")).append(" ");
+        if (this.match != null && this.match.length() > 0) title.append("matching '").append(this.match).append("' ");
+        if (this.before > 0 && this.since > 0) title.append("between ").append(this.since).append(" and ").append(this.before).append(" minutes ago ");
+        else if (this.since > 0) title.append("in the last ").append(this.since).append(" minutes ");
+        else if (this.before > 0) title.append("more than ").append(this.before * -1).append(" minutes ago ");
         if (this.loc != null) {
-            if (this.radius > 0) title.append("within " + this.radius + " blocks of " + (this.prepareToolQuery ? "clicked block" : "you") + " ");
-            else if (this.radius == 0) title.append("at " + this.loc.getBlockX() + ":" + this.loc.getBlockY() + ":" + this.loc.getBlockZ() + " ");
+            if (this.radius > 0) title.append("within ").append(this.radius).append(" blocks of ").append(this.prepareToolQuery ? "clicked block" : "you").append(" ");
+            else if (this.radius == 0) title.append("at ").append(this.loc.getBlockX()).append(":").append(this.loc.getBlockY()).append(":").append(this.loc.getBlockZ()).append(" ");
         } else if (this.sel != null) title.append(this.prepareToolQuery ? "at double chest " : "inside selection ");
-        else if (this.prepareToolQuery) if (this.radius > 0) title.append("within " + this.radius + " blocks of clicked block ");
+        else if (this.prepareToolQuery) if (this.radius > 0) title.append("within ").append(this.radius).append(" blocks of clicked block ");
         else if (this.radius == 0) title.append("at clicked block ");
-        if (this.world != null && !(this.sel != null && this.prepareToolQuery)) title.append("in " + friendlyWorldname(this.world.getName()) + " ");
-        if (this.sum != SummarizationMode.NONE) title.append("summed up by " + (this.sum == SummarizationMode.TYPES ? "blocks" : "players") + " ");
+        if (this.world != null && !(this.sel != null && this.prepareToolQuery)) title.append("in ").append(friendlyWorldname(this.world.getName())).append(" ");
+        if (this.sum != SummarizationMode.NONE) title.append("summed up by ").append(this.sum == SummarizationMode.TYPES ? "blocks" : "players").append(" ");
         title.deleteCharAt(title.length() - 1);
         title.setCharAt(0, String.valueOf(title.charAt(0)).toUpperCase().toCharArray()[0]);
         return title.toString();
@@ -168,12 +169,12 @@ public class QueryParams implements Cloneable {
     }
 
     public String getWhere(final BlockChangeType blockChangeType) {
-        final StringBuilder where = new StringBuilder("WHERE ");
+        final StringBuilder where = new StringBuilder().append("WHERE ");
         if (blockChangeType == BlockChangeType.CHAT) {
             if (this.match != null && this.match.length() > 0) {
                 final boolean unlike = this.match.startsWith("-");
-                if (this.match.length() > 3 && !unlike || this.match.length() > 4) where.append("MATCH (message) AGAINST ('" + this.match + "' IN BOOLEAN MODE) AND ");
-                else where.append("message " + (unlike ? "NOT " : "") + "LIKE '%" + (unlike ? this.match.substring(1) : this.match) + "%' AND ");
+                if (this.match.length() > 3 && !unlike || this.match.length() > 4) where.append("MATCH (message) AGAINST ('").append(this.match).append("' IN BOOLEAN MODE) AND ");
+                else where.append("message ").append(unlike ? "NOT " : "").append("LIKE '%").append(unlike ? this.match.substring(1) : this.match).append("%' AND ");
             }
         } else {
             switch (blockChangeType) {
@@ -181,7 +182,7 @@ public class QueryParams implements Cloneable {
                 if (!this.types.isEmpty()) {
                     where.append('(');
                     for (final int type : this.types)
-                        where.append("type = " + type + " OR replaced = " + type + " OR ");
+                        where.append("type = ").append(type).append(" OR replaced = ").append(type).append(" OR ");
                     where.delete(where.length() - 4, where.length() - 1);
                     where.append(") AND ");
                 }
@@ -190,7 +191,7 @@ public class QueryParams implements Cloneable {
                 if (!this.types.isEmpty()) {
                     where.append('(');
                     for (final int type : this.types)
-                        where.append("type = " + type + " OR replaced = " + type + " OR ");
+                        where.append("type = ").append(type).append(" OR replaced = ").append(type).append(" OR ");
                     where.delete(where.length() - 4, where.length());
                     where.append(") AND ");
                 }
@@ -200,7 +201,7 @@ public class QueryParams implements Cloneable {
                 if (!this.types.isEmpty()) {
                     where.append('(');
                     for (final int type : this.types)
-                        where.append("type = " + type + " OR ");
+                        where.append("type = ").append(type).append(" OR ");
                     where.delete(where.length() - 4, where.length());
                     where.append(") AND ");
                 } else where.append("type != 0 AND ");
@@ -210,7 +211,7 @@ public class QueryParams implements Cloneable {
                 if (!this.types.isEmpty()) {
                     where.append('(');
                     for (final int type : this.types)
-                        where.append("replaced = " + type + " OR ");
+                        where.append("replaced = ").append(type).append(" OR ");
                     where.delete(where.length() - 4, where.length());
                     where.append(") AND ");
                 } else where.append("replaced != 0 AND ");
@@ -221,7 +222,7 @@ public class QueryParams implements Cloneable {
                 if (!this.types.isEmpty()) {
                     where.append('(');
                     for (final int type : this.types)
-                        where.append("itemtype = " + type + " OR ");
+                        where.append("itemtype = ").append(type).append(" OR ");
                     where.delete(where.length() - 4, where.length());
                     where.append(") AND ");
                 }
@@ -230,24 +231,25 @@ public class QueryParams implements Cloneable {
                 break;
             }
             if (this.loc != null) {
-                if (this.radius == 0) where.append("x = '" + this.loc.getBlockX() + "' AND y = '" + this.loc.getBlockY() + "' AND z = '" + this.loc.getBlockZ() + "' AND ");
+                if (this.radius == 0) where.append("x = '").append(this.loc.getBlockX()).append("' AND y = '").append(this.loc.getBlockY()).append("' AND z = '").append(this.loc.getBlockZ()).append("' AND ");
                 else if (this.radius > 0)
-                    where.append("x > '" + (this.loc.getBlockX() - this.radius) + "' AND x < '" + (this.loc.getBlockX() + this.radius) + "' AND z > '" + (this.loc.getBlockZ() - this.radius) + "' AND z < '"
-                            + (this.loc.getBlockZ() + this.radius) + "' AND ");
+                    where.append("x > '").append(this.loc.getBlockX() - this.radius).append("' AND x < '").append(this.loc.getBlockX() + this.radius).append("' AND z > '").append(this.loc.getBlockZ() - this.radius)
+                            .append("' AND z < '").append(this.loc.getBlockZ() + this.radius).append("' AND ");
             } else if (this.sel != null)
-                where.append("x >= '" + this.sel.getMinimumPoint().getBlockX() + "' AND x <= '" + this.sel.getMaximumPoint().getBlockX() + "' AND y >= '" + this.sel.getMinimumPoint().getBlockY() + "' AND y <= '"
-                        + this.sel.getMaximumPoint().getBlockY() + "' AND z >= '" + this.sel.getMinimumPoint().getBlockZ() + "' AND z <= '" + this.sel.getMaximumPoint().getBlockZ() + "' AND ");
+                where.append("x >= '").append(this.sel.getMinimumPoint().getBlockX()).append("' AND x <= '").append(this.sel.getMaximumPoint().getBlockX()).append("' AND y >= '").append(this.sel.getMinimumPoint().getBlockY())
+                        .append("' AND y <= '").append(this.sel.getMaximumPoint().getBlockY()).append("' AND z >= '").append(this.sel.getMinimumPoint().getBlockZ()).append("' AND z <= '")
+                        .append(this.sel.getMaximumPoint().getBlockZ()).append("' AND ");
         }
         if (!this.players.isEmpty() && this.sum != SummarizationMode.PLAYERS) if (!this.excludePlayersMode) {
             where.append('(');
             for (final String playerName : this.players)
-                where.append("playername = '" + playerName + "' OR ");
+                where.append("playername = '").append(playerName).append("' OR ");
             where.delete(where.length() - 4, where.length());
             where.append(") AND ");
         } else for (final String playerName : this.players)
-            where.append("playername != '" + playerName + "' AND ");
-        if (this.since > 0) where.append("date > date_sub(now(), INTERVAL " + this.since + " MINUTE) AND ");
-        if (this.before > 0) where.append("date < date_sub(now(), INTERVAL " + this.before + " MINUTE) AND ");
+            where.append("playername != '").append(playerName).append("' AND ");
+        if (this.since > 0) where.append("date > date_sub(now(), INTERVAL ").append(this.since).append(" MINUTE) AND ");
+        if (this.before > 0) where.append("date < date_sub(now(), INTERVAL ").append(this.before).append(" MINUTE) AND ");
         if (where.length() > 6) where.delete(where.length() - 4, where.length());
         else where.delete(0, where.length());
         return where.toString();
@@ -271,7 +273,7 @@ public class QueryParams implements Cloneable {
     }
 
     public void parseArgs(final CommandSender sender, final List<String> args) throws IllegalArgumentException {
-        if (args == null || args.size() == 0) throw new IllegalArgumentException("No parameters specified.");
+        if (args == null || args.isEmpty()) throw new IllegalArgumentException("No parameters specified.");
         final Player player = sender instanceof Player ? (Player) sender : null;
         final Session session = this.prepareToolQuery ? null : getSession(sender);
         if (player != null && this.world == null) this.world = player.getWorld();

@@ -2,7 +2,7 @@ package de.diddiz.LogBlock.listeners;
 
 import static de.diddiz.LogBlock.config.Config.getWorldConfig;
 
-import org.bukkit.Location;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
 import org.bukkit.event.block.Action;
@@ -18,33 +18,35 @@ public class InteractLogging extends LoggingListener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerInteract(final PlayerInteractEvent event) {
-        final Player p = event.getPlayer();
-        final WorldConfig wcfg = getWorldConfig(p.getWorld());
+        final Player player = event.getPlayer();
+        final WorldConfig wcfg = getWorldConfig(player.getWorld());
         if (wcfg != null && (event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_BLOCK)) {
-            final int type = event.getClickedBlock().getTypeId();
-            final String name = p.getName();
+            final Material type = event.getClickedBlock().getType();
+            final int typeId = type.getId();
+            final byte blockData = event.getClickedBlock().getData();
+            player.getName();
             final Location loc = event.getClickedBlock().getLocation();
+
             switch (type) {
-            case 69:
-            case 77:
-                if (wcfg.isLogging(Logging.SWITCHINTERACT)) consumer.queueBlock(name, loc, type, type, (byte) 0);
+            case LEVER:
+            case STONE_BUTTON:
+                if (wcfg.isLogging(Logging.SWITCHINTERACT)) consumer.queueBlock(player.getName(), loc, typeId, typeId, blockData);
                 break;
-            case 107:
+            case FENCE_GATE:
                 if (event.getAction() != Action.RIGHT_CLICK_BLOCK) break;
+            case WOODEN_DOOR:
+            case TRAP_DOOR:
+                if (wcfg.isLogging(Logging.DOORINTERACT)) consumer.queueBlock(player.getName(), loc, typeId, typeId, blockData);
                 break;
-            case 64:
-            case 96:
-                if (wcfg.isLogging(Logging.DOORINTERACT)) consumer.queueBlock(name, loc, type, type, (byte) ((event.getClickedBlock().getData() & 4) / 4));
+            case CAKE_BLOCK:
+                if (wcfg.isLogging(Logging.CAKEEAT) && player.getFoodLevel() < 20) consumer.queueBlock(player.getName(), loc, typeId, typeId, blockData);
                 break;
-            case 92:
-                if (wcfg.isLogging(Logging.CAKEEAT) && p.getFoodLevel() < 20) consumer.queueBlock(name, loc, 92, 92, (byte) 0);
+            case NOTE_BLOCK:
+                if (wcfg.isLogging(Logging.NOTEBLOCKINTERACT)) consumer.queueBlock(player.getName(), loc, typeId, typeId, blockData);
                 break;
-            case 25:
-                if (wcfg.isLogging(Logging.NOTEBLOCKINTERACT)) consumer.queueBlock(name, loc, 25, 25, (byte) 0);
-                break;
-            case 93:
-            case 94:
-                if (wcfg.isLogging(Logging.DIODEINTERACT) && event.getAction() == Action.RIGHT_CLICK_BLOCK) consumer.queueBlock(name, loc, type, type, (byte) 0);
+            case DIODE_BLOCK_OFF:
+            case DIODE_BLOCK_ON:
+                if (wcfg.isLogging(Logging.DIODEINTERACT) && event.getAction() == Action.RIGHT_CLICK_BLOCK) consumer.queueBlock(player.getName(), loc, typeId, typeId, blockData);
                 break;
             }
         }
